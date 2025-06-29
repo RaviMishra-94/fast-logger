@@ -42,6 +42,7 @@ class FastLogger:
         self.console_output = console_output
         self.base_path = base_path
 
+        # Default format
         self.log_format = log_format or (
             '%(asctime)s - %(name)s [%(filename)s:%(lineno)d] - '
             '%(levelname)s - %(message)s'
@@ -62,10 +63,12 @@ class FastLogger:
         if self.base_path:
             base = Path(self.base_path)
         else:
+            # Use the directory of the calling script
             import inspect
             frame = inspect.currentframe()
             try:
-                caller_frame = frame.f_back.f_back
+                # Go up the stack to find the caller
+                caller_frame = frame.f_back.f_back.f_back  # Go up one more level
                 caller_file = caller_frame.f_code.co_filename
                 base = Path(caller_file).parent
             finally:
@@ -77,24 +80,22 @@ class FastLogger:
 
     def _setup_logger(self):
         """Set up the logger with file and console handlers."""
-        if self.name in logging.Logger.manager.loggerDict:
-            existing_logger = logging.getLogger(self.name)
-            if existing_logger.handlers:
-                self._logger = existing_logger
-                return
-
+        # Get or create logger
         self._logger = logging.getLogger(self.name)
+
+        # Clear any existing handlers to avoid duplicates
+        self._logger.handlers.clear()
         self._logger.setLevel(self.level)
 
-        self._logger.handlers.clear()
-
+        # Create formatter
         formatter = logging.Formatter(self.log_format)
 
+        # File handler
         log_dir = self._get_log_directory()
         log_file = log_dir / f"{self.name}.log"
 
         file_handler = RotatingFileHandler(
-            log_file,
+            str(log_file),  # Convert Path to string
             maxBytes=self.max_file_size_mb * 1024 * 1024,
             backupCount=self.backup_count,
             encoding='utf-8'
@@ -103,12 +104,14 @@ class FastLogger:
         file_handler.setFormatter(formatter)
         self._logger.addHandler(file_handler)
 
+        # Console handler (only if enabled)
         if self.console_output:
             console_handler = logging.StreamHandler(sys.stdout)
             console_handler.setLevel(self.level)
             console_handler.setFormatter(formatter)
             self._logger.addHandler(console_handler)
 
+        # Prevent propagation to root logger
         self._logger.propagate = False
 
     def get_logger(self) -> logging.Logger:
@@ -139,6 +142,7 @@ class FastLogger:
         """Log an exception with traceback."""
         self._logger.exception(message, *args, **kwargs)
 
+
 def setup_logger(name: str, **kwargs) -> logging.Logger:
     """
     Quick setup function for backward compatibility and convenience.
@@ -153,6 +157,7 @@ def setup_logger(name: str, **kwargs) -> logging.Logger:
     fast_logger = FastLogger(name, **kwargs)
     return fast_logger.get_logger()
 
+
 def get_logger(name: str, **kwargs) -> FastLogger:
     """
     Get a FastLogger instance with fluent interface.
@@ -166,6 +171,8 @@ def get_logger(name: str, **kwargs) -> FastLogger:
     """
     return FastLogger(name, **kwargs)
 
+
+# Convenience function for one-liner setup
 def quick_logger(name: str, level: str = 'INFO') -> logging.Logger:
     """
     Super quick logger setup with minimal configuration.

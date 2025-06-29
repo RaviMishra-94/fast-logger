@@ -1,18 +1,18 @@
 [build-system]
-requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "fast-logger"
-dynamic = ["version"]
+version = "0.1.0"
 description = "A simple, no-fuss logging setup for Python applications"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "Ravi Mishra", email = "ravi@paisafintech.com"}
+    {name = "Your Name", email = "your.email@example.com"}
 ]
 maintainers = [
-    {name = "Ravi Mishra", email = "ravi@paisafintech.com"}
+    {name = "Your Name", email = "your.email@example.com"}
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -43,17 +43,16 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/RaviMishra-94/fast-logger"
-Documentation = "https://github.com/RaviMishra-94/fast-logger/blob/main/README.md"
-Repository = "https://github.com/RaviMishra-94/fast-logger.git"
-"Bug Tracker" = "https://github.com/RaviMishra-94/fast-logger/issues"
+Homepage = "https://github.com/yourusername/fast-logger"
+Documentation = "https://github.com/yourusername/fast-logger/blob/main/README.md"
+Repository = "https://github.com/yourusername/fast-logger.git"
+"Bug Tracker" = "https://github.com/yourusername/fast-logger/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["fast_logger*"]
 
-[tool.setuptools_scm]
-write_to = "fast_logger/_version.py"
+
 
 [tool.black]
 line-length = 88

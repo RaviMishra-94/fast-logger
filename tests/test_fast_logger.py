@@ -37,6 +37,11 @@ class TestFastLogger(unittest.TestCase):
 
         logger.info("Test message")
 
+        # Force flush to ensure file is written
+        for handler in logger.get_logger().handlers:
+            if hasattr(handler, 'flush'):
+                handler.flush()
+
         log_file = Path(self.temp_dir) / "logs" / f"{self.test_name}.log"
         self.assertTrue(log_file.exists())
 
@@ -50,6 +55,11 @@ class TestFastLogger(unittest.TestCase):
 
         test_message = "Test log message"
         logger.info(test_message)
+
+        # Force flush to ensure file is written
+        for handler in logger.get_logger().handlers:
+            if hasattr(handler, 'flush'):
+                handler.flush()
 
         log_file = Path(self.temp_dir) / "logs" / f"{self.test_name}.log"
         with open(log_file, 'r') as f:
@@ -72,6 +82,11 @@ class TestFastLogger(unittest.TestCase):
         logger.warning("Warning message")
         logger.error("Error message")
         logger.critical("Critical message")
+
+        # Force flush to ensure file is written
+        for handler in logger.get_logger().handlers:
+            if hasattr(handler, 'flush'):
+                handler.flush()
 
         log_file = Path(self.temp_dir) / "logs" / f"{self.test_name}.log"
         with open(log_file, 'r') as f:
@@ -111,6 +126,11 @@ class TestFastLogger(unittest.TestCase):
         )
 
         logger.info("Test message")
+
+        # Force flush to ensure file is written
+        for handler in logger.get_logger().handlers:
+            if hasattr(handler, 'flush'):
+                handler.flush()
 
         log_file = Path(self.temp_dir) / custom_folder / f"{self.test_name}.log"
         self.assertTrue(log_file.exists())
@@ -171,6 +191,11 @@ class TestFastLogger(unittest.TestCase):
         )
 
         logger.info("Test message")
+
+        # Force flush to ensure file is written
+        for handler in logger.get_logger().handlers:
+            if hasattr(handler, 'flush'):
+                handler.flush()
 
         log_file = Path(self.temp_dir) / "logs" / f"{self.test_name}.log"
         with open(log_file, 'r') as f:
