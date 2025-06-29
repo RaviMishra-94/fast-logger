@@ -1,0 +1,66 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fast-logger"
+dynamic = ["version"]
+description = "A simple, no-fuss logging setup for Python applications"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Ravi Mishra", email = "ravi@paisafintech.com"}
+]
+maintainers = [
+    {name = "Ravi Mishra", email = "ravi@paisafintech.com"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Logging",
+]
+keywords = ["logging", "logger", "simple", "fast", "rotating", "file"]
+requires-python = ">=3.7"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "pytest-cov>=2.0",
+    "black>=21.0",
+    "flake8>=3.8",
+    "mypy>=0.800",
+]
+
+[project.urls]
+Homepage = "https://github.com/RaviMishra-94/fast-logger"
+Documentation = "https://github.com/RaviMishra-94/fast-logger/blob/main/README.md"
+Repository = "https://github.com/RaviMishra-94/fast-logger.git"
+"Bug Tracker" = "https://github.com/RaviMishra-94/fast-logger/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["fast_logger*"]
+
+[tool.setuptools_scm]
+write_to = "fast_logger/_version.py"
+
+[tool.black]
+line-length = 88
+target-version = ['py37', 'py38', 'py39', 'py310', 'py311']
+
+[tool.mypy]
+python_version = "3.7"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
