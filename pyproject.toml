@@ -9,10 +9,10 @@ description = "A simple, no-fuss logging setup for Python applications"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "Your Name", email = "your.email@example.com"}
+    {name = "Ravi Mishra", email = "ravi@paisafintech.com"}
 ]
 maintainers = [
-    {name = "Your Name", email = "your.email@example.com"}
+    {name = "Ravi Mishra", email = "ravi@paisafintech.com"}
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -43,10 +43,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/fast-logger"
-Documentation = "https://github.com/yourusername/fast-logger/blob/main/README.md"
-Repository = "https://github.com/yourusername/fast-logger.git"
-"Bug Tracker" = "https://github.com/yourusername/fast-logger/issues"
+Homepage = "https://github.com/RaviMishra-94/fast-logger"
+Documentation = "https://github.com/RaviMishra-94/fast-logger/blob/main/README.md"
+Repository = "https://github.com/RaviMishra-94/fast-logger.git"
+"Bug Tracker" = "https://github.com/RaviMishra-94/fast-logger/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
