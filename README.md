@@ -1,5 +1,7 @@
 # Fast Logger
 
+![Tests](https://github.com/RaviMishra-94/fast-logger/actions/workflows/python-app.yml/badge.svg)
+
 A simple, no-fuss logging setup for Python applications with sensible defaults.
 
 ## Features
