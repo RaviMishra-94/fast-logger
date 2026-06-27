@@ -6,21 +6,23 @@ import logging
 import sys
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Optional, Union
+from typing import Any, Optional, Union, cast
 
 
 class FastLogger:
     """A simple logger setup with sensible defaults."""
 
-    def __init__(self,
-                 name: str,
-                 level: Union[int, str] = logging.INFO,
-                 log_folder: str = 'logs',
-                 max_file_size_mb: int = 50,
-                 backup_count: int = 3,
-                 log_format: Optional[str] = None,
-                 console_output: bool = True,
-                 base_path: Optional[str] = None):
+    def __init__(
+        self,
+        name: str,
+        level: Union[int, str] = logging.INFO,
+        log_folder: str = "logs",
+        max_file_size_mb: int = 50,
+        backup_count: int = 3,
+        log_format: Optional[str] = None,
+        console_output: bool = True,
+        base_path: Optional[str] = None,
+    ):
         """
         Initialize FastLogger with configuration.
 
@@ -44,11 +46,11 @@ class FastLogger:
 
         # Default format
         self.log_format = log_format or (
-            '%(asctime)s - %(name)s [%(filename)s:%(lineno)d] - '
-            '%(levelname)s - %(message)s'
+            "%(asctime)s - %(name)s [%(filename)s:%(lineno)d] - "
+            "%(levelname)s - %(message)s"
         )
 
-        self._logger = None
+        self._logger: Optional[logging.Logger] = None
         self._setup_logger()
 
     @staticmethod
@@ -65,12 +67,21 @@ class FastLogger:
         else:
             # Use the directory of the calling script
             import inspect
+
             frame = inspect.currentframe()
             try:
                 # Go up the stack to find the caller
-                caller_frame = frame.f_back.f_back.f_back  # Go up one more level
-                caller_file = caller_frame.f_code.co_filename
-                base = Path(caller_file).parent
+                if (
+                    frame
+                    and frame.f_back
+                    and frame.f_back.f_back
+                    and frame.f_back.f_back.f_back
+                ):
+                    caller_frame = frame.f_back.f_back.f_back  # Go up one more level
+                    caller_file = caller_frame.f_code.co_filename
+                    base = Path(caller_file).parent
+                else:
+                    base = Path.cwd()
             finally:
                 del frame
 
@@ -78,7 +89,7 @@ class FastLogger:
         log_dir.mkdir(parents=True, exist_ok=True)
         return log_dir
 
-    def _setup_logger(self):
+    def _setup_logger(self) -> None:
         """Set up the logger with file and console handlers."""
         # Get or create logger
         self._logger = logging.getLogger(self.name)
@@ -98,7 +109,7 @@ class FastLogger:
             str(log_file),  # Convert Path to string
             maxBytes=self.max_file_size_mb * 1024 * 1024,
             backupCount=self.backup_count,
-            encoding='utf-8'
+            encoding="utf-8",
         )
         file_handler.setLevel(self.level)
         file_handler.setFormatter(formatter)
@@ -116,34 +127,41 @@ class FastLogger:
 
     def get_logger(self) -> logging.Logger:
         """Get the configured logger instance."""
+        assert self._logger is not None
         return self._logger
 
-    def debug(self, message: str, *args, **kwargs):
+    def debug(self, message: str, *args: Any, **kwargs: Any) -> None:
         """Log a debug message."""
-        self._logger.debug(message, *args, **kwargs)
+        if self._logger:
+            self._logger.debug(message, *args, **kwargs)
 
-    def info(self, message: str, *args, **kwargs):
+    def info(self, message: str, *args: Any, **kwargs: Any) -> None:
         """Log an info message."""
-        self._logger.info(message, *args, **kwargs)
+        if self._logger:
+            self._logger.info(message, *args, **kwargs)
 
-    def warning(self, message: str, *args, **kwargs):
+    def warning(self, message: str, *args: Any, **kwargs: Any) -> None:
         """Log a warning message."""
-        self._logger.warning(message, *args, **kwargs)
+        if self._logger:
+            self._logger.warning(message, *args, **kwargs)
 
-    def error(self, message: str, *args, **kwargs):
+    def error(self, message: str, *args: Any, **kwargs: Any) -> None:
         """Log an error message."""
-        self._logger.error(message, *args, **kwargs)
+        if self._logger:
+            self._logger.error(message, *args, **kwargs)
 
-    def critical(self, message: str, *args, **kwargs):
+    def critical(self, message: str, *args: Any, **kwargs: Any) -> None:
         """Log a critical message."""
-        self._logger.critical(message, *args, **kwargs)
+        if self._logger:
+            self._logger.critical(message, *args, **kwargs)
 
-    def exception(self, message: str, *args, **kwargs):
+    def exception(self, message: str, *args: Any, **kwargs: Any) -> None:
         """Log an exception with traceback."""
-        self._logger.exception(message, *args, **kwargs)
+        if self._logger:
+            self._logger.exception(message, *args, **kwargs)
 
 
-def setup_logger(name: str, **kwargs) -> logging.Logger:
+def setup_logger(name: str, **kwargs: Any) -> logging.Logger:
     """
     Quick setup function for backward compatibility and convenience.
 
@@ -158,7 +176,7 @@ def setup_logger(name: str, **kwargs) -> logging.Logger:
     return fast_logger.get_logger()
 
 
-def get_logger(name: str, **kwargs) -> FastLogger:
+def get_logger(name: str, **kwargs: Any) -> FastLogger:
     """
     Get a FastLogger instance with fluent interface.
 
@@ -173,7 +191,7 @@ def get_logger(name: str, **kwargs) -> FastLogger:
 
 
 # Convenience function for one-liner setup
-def quick_logger(name: str, level: str = 'INFO') -> logging.Logger:
+def quick_logger(name: str, level: str = "INFO") -> logging.Logger:
     """
     Super quick logger setup with minimal configuration.
 

@@ -1,0 +1,13 @@
+LICENSE
+MANIFEST.in
+README.md
+pyproject.toml
+setup.cfg
+fast_logger/__init__.py
+fast_logger/core.py
+python_fast_logger.egg-info/PKG-INFO
+python_fast_logger.egg-info/SOURCES.txt
+python_fast_logger.egg-info/dependency_links.txt
+python_fast_logger.egg-info/requires.txt
+python_fast_logger.egg-info/top_level.txt
+tests/test_fast_logger.py

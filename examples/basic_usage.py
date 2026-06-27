@@ -29,10 +29,7 @@ def main():
     # Example 3: Using FastLogger class directly
     print("3. FastLogger class with custom settings:")
     logger3 = get_logger(
-        "advanced_demo",
-        level="INFO",
-        max_file_size_mb=10,
-        backup_count=2
+        "advanced_demo", level="INFO", max_file_size_mb=10, backup_count=2
     )
 
     logger3.info("This logger has custom file size limits")

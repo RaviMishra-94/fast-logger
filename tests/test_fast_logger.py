@@ -19,10 +19,7 @@ class TestFastLogger(unittest.TestCase):
 
     def test_basic_logger_creation(self):
         """Test basic logger creation."""
-        logger = FastLogger(
-            name=self.test_name,
-            base_path=self.temp_dir
-        )
+        logger = FastLogger(name=self.test_name, base_path=self.temp_dir)
 
         self.assertIsNotNone(logger.get_logger())
         self.assertEqual(logger.name, self.test_name)
@@ -30,16 +27,13 @@ class TestFastLogger(unittest.TestCase):
 
     def test_log_file_creation(self):
         """Test that log files are created."""
-        logger = FastLogger(
-            name=self.test_name,
-            base_path=self.temp_dir
-        )
+        logger = FastLogger(name=self.test_name, base_path=self.temp_dir)
 
         logger.info("Test message")
 
         # Force flush to ensure file is written
         for handler in logger.get_logger().handlers:
-            if hasattr(handler, 'flush'):
+            if hasattr(handler, "flush"):
                 handler.flush()
 
         log_file = Path(self.temp_dir) / "logs" / f"{self.test_name}.log"
@@ -50,7 +44,7 @@ class TestFastLogger(unittest.TestCase):
         logger = FastLogger(
             name=self.test_name,
             base_path=self.temp_dir,
-            console_output=False  # Only file output for testing
+            console_output=False,  # Only file output for testing
         )
 
         test_message = "Test log message"
@@ -58,11 +52,11 @@ class TestFastLogger(unittest.TestCase):
 
         # Force flush to ensure file is written
         for handler in logger.get_logger().handlers:
-            if hasattr(handler, 'flush'):
+            if hasattr(handler, "flush"):
                 handler.flush()
 
         log_file = Path(self.temp_dir) / "logs" / f"{self.test_name}.log"
-        with open(log_file, 'r') as f:
+        with open(log_file, "r") as f:
             content = f.read()
 
         self.assertIn(test_message, content)
@@ -74,7 +68,7 @@ class TestFastLogger(unittest.TestCase):
             name=self.test_name,
             base_path=self.temp_dir,
             level=logging.DEBUG,
-            console_output=False
+            console_output=False,
         )
 
         logger.debug("Debug message")
@@ -85,11 +79,11 @@ class TestFastLogger(unittest.TestCase):
 
         # Force flush to ensure file is written
         for handler in logger.get_logger().handlers:
-            if hasattr(handler, 'flush'):
+            if hasattr(handler, "flush"):
                 handler.flush()
 
         log_file = Path(self.temp_dir) / "logs" / f"{self.test_name}.log"
-        with open(log_file, 'r') as f:
+        with open(log_file, "r") as f:
             content = f.read()
 
         self.assertIn("DEBUG", content)
@@ -100,18 +94,12 @@ class TestFastLogger(unittest.TestCase):
 
     def test_string_level_parsing(self):
         """Test string level parsing."""
-        logger = FastLogger(
-            name=self.test_name,
-            base_path=self.temp_dir,
-            level="DEBUG"
-        )
+        logger = FastLogger(name=self.test_name, base_path=self.temp_dir, level="DEBUG")
 
         self.assertEqual(logger.level, logging.DEBUG)
 
         logger = FastLogger(
-            name=self.test_name + "2",
-            base_path=self.temp_dir,
-            level="warning"
+            name=self.test_name + "2", base_path=self.temp_dir, level="warning"
         )
 
         self.assertEqual(logger.level, logging.WARNING)
@@ -120,16 +108,14 @@ class TestFastLogger(unittest.TestCase):
         """Test custom log folder."""
         custom_folder = "custom_logs"
         logger = FastLogger(
-            name=self.test_name,
-            base_path=self.temp_dir,
-            log_folder=custom_folder
+            name=self.test_name, base_path=self.temp_dir, log_folder=custom_folder
         )
 
         logger.info("Test message")
 
         # Force flush to ensure file is written
         for handler in logger.get_logger().handlers:
-            if hasattr(handler, 'flush'):
+            if hasattr(handler, "flush"):
                 handler.flush()
 
         log_file = Path(self.temp_dir) / custom_folder / f"{self.test_name}.log"
@@ -169,16 +155,18 @@ class TestFastLogger(unittest.TestCase):
     def test_console_output_disabled(self):
         """Test logger with console output disabled."""
         logger = FastLogger(
-            name=self.test_name,
-            base_path=self.temp_dir,
-            console_output=False
+            name=self.test_name, base_path=self.temp_dir, console_output=False
         )
 
         # Should have only file handler
         handlers = logger.get_logger().handlers
         self.assertEqual(len(handlers), 1)
-        self.assertTrue(any(handler.__class__.__name__ == 'RotatingFileHandler'
-                            for handler in handlers))
+        self.assertTrue(
+            any(
+                handler.__class__.__name__ == "RotatingFileHandler"
+                for handler in handlers
+            )
+        )
 
     def test_custom_format(self):
         """Test custom log format."""
@@ -187,23 +175,23 @@ class TestFastLogger(unittest.TestCase):
             name=self.test_name,
             base_path=self.temp_dir,
             log_format=custom_format,
-            console_output=False
+            console_output=False,
         )
 
         logger.info("Test message")
 
         # Force flush to ensure file is written
         for handler in logger.get_logger().handlers:
-            if hasattr(handler, 'flush'):
+            if hasattr(handler, "flush"):
                 handler.flush()
 
         log_file = Path(self.temp_dir) / "logs" / f"{self.test_name}.log"
-        with open(log_file, 'r') as f:
+        with open(log_file, "r") as f:
             content = f.read().strip()
 
         # Should match our custom format
         self.assertTrue(content.startswith("INFO: Test message"))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
