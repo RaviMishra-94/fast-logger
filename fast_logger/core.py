@@ -20,8 +20,7 @@ class FastLogger:
                  backup_count: int = 3,
                  log_format: Optional[str] = None,
                  console_output: bool = True,
-                 base_path: Optional[str] = None,
-                 auto_traceback: bool = False):
+                 base_path: Optional[str] = None):
         """
         Initialize FastLogger with configuration.
 
@@ -42,7 +41,6 @@ class FastLogger:
         self.backup_count = backup_count
         self.console_output = console_output
         self.base_path = base_path
-        self.auto_traceback = auto_traceback
 
         # Default format
         self.log_format = log_format or (
@@ -115,19 +113,6 @@ class FastLogger:
 
         # Prevent propagation to root logger
         self._logger.propagate = False
-
-        if self.auto_traceback:
-            self._setup_auto_traceback()
-
-    def _setup_auto_traceback(self):
-        """Override sys.excepthook to log unhandled exceptions."""
-        def handle_exception(exc_type, exc_value, exc_traceback):
-            if issubclass(exc_type, KeyboardInterrupt):
-                sys.__excepthook__(exc_type, exc_value, exc_traceback)
-                return
-            self._logger.critical("Unhandled exception", exc_info=(exc_type, exc_value, exc_traceback))
-        
-        sys.excepthook = handle_exception
 
     def get_logger(self) -> logging.Logger:
         """Get the configured logger instance."""
