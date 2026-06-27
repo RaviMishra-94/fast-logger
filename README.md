@@ -180,7 +180,7 @@ logger = quick_logger("my_app")
 
 ## Requirements
 
-- Python 3.7+
+- Python 3.9+
 - No external dependencies
 
 ## License

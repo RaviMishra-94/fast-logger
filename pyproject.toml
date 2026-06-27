@@ -20,8 +20,6 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -30,7 +28,7 @@ classifiers = [
     "Topic :: System :: Logging",
 ]
 keywords = ["logging", "logger", "simple", "fast", "rotating", "file"]
-requires-python = ">=3.7"
+requires-python = ">=3.9"
 dependencies = []
 
 [project.optional-dependencies]
@@ -56,10 +54,10 @@ include = ["fast_logger*"]
 
 [tool.black]
 line-length = 88
-target-version = ['py37', 'py38', 'py39', 'py310', 'py311']
+target-version = ['py39', 'py310', 'py311']
 
 [tool.mypy]
-python_version = "3.7"
+python_version = "3.9"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
