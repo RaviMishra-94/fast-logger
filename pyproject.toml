@@ -3,7 +3,7 @@ requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "fast-logger"
+name = "python-fast-logger"
 version = "0.1.0"
 description = "A simple, no-fuss logging setup for Python applications"
 readme = "README.md"

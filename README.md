@@ -1,14 +1,6 @@
 # Fast Logger
 
-<p align="center">
-  <img src="assets/fastlogger.png" alt="Fast Logger" width="100%">
-</p>
-
-<p align="center">
-  <a href="https://pypi.org/project/fast-logger/"><img src="https://img.shields.io/pypi/v/fast-logger.svg?style=for-the-badge" alt="PyPI version" /></a>
-  <a href="https://pypi.org/project/fast-logger/"><img src="https://img.shields.io/pypi/dm/fast-logger?style=for-the-badge" alt="PyPI downloads" /></a>
-  <img src="https://github.com/RaviMishra-94/fast-logger/actions/workflows/python-app.yml/badge.svg?style=for-the-badge" alt="Tests" />
-</p>
+![Tests](https://github.com/RaviMishra-94/fast-logger/actions/workflows/python-app.yml/badge.svg)
 
 A simple, no-fuss logging setup for Python applications with sensible defaults.
 
@@ -16,7 +8,6 @@ A simple, no-fuss logging setup for Python applications with sensible defaults.
 
 - **Zero configuration**: Works out of the box with sensible defaults
 - **Rotating file logs**: Automatically manages log file sizes and backups
-- **Auto Traceback Catching**: Optionally capture all unhandled script crashes
 - **Console output**: Simultaneous logging to file and console
 - **Flexible configuration**: Easy to customize when needed
 - **Type hints**: Full type hint support for better IDE experience
@@ -25,7 +16,7 @@ A simple, no-fuss logging setup for Python applications with sensible defaults.
 ## Installation
 
 ```bash
-pip install fast-logger
+pip install python-fast-logger
 ```
 
 ## Quick Start
@@ -63,15 +54,11 @@ logger = FastLogger(
     log_folder="custom_logs",
     max_file_size_mb=100,
     backup_count=5,
-    console_output=True,
-    auto_traceback=True  # Automatically captures unhandled script crashes
+    console_output=True
 )
 
 logger.info("Advanced logging setup complete")
 logger.debug("Debug information")
-
-# Any unhandled exceptions after this point will be automatically caught and logged as CRITICAL
-# raise ValueError("This will be logged!")
 ```
 
 ### Web Application Example
@@ -110,7 +97,6 @@ def get_data():
 | `max_file_size_mb` | int | `50` | Maximum size of each log file in MB |
 | `backup_count` | int | `3` | Number of backup files to keep |
 | `console_output` | bool | `True` | Whether to output to console |
-| `auto_traceback` | bool | `False` | Automatically logs all unhandled script exceptions as CRITICAL errors |
 | `log_format` | str | Default format | Custom log format string |
 | `base_path` | str | Caller's directory | Base directory for logs |
 
