@@ -68,22 +68,21 @@ class FastLogger:
             # Use the directory of the calling script
             import inspect
 
-            frame = inspect.currentframe()
-            try:
-                # Go up the stack to find the caller
-                if (
-                    frame
-                    and frame.f_back
-                    and frame.f_back.f_back
-                    and frame.f_back.f_back.f_back
-                ):
-                    caller_frame = frame.f_back.f_back.f_back  # Go up one more level
-                    caller_file = caller_frame.f_code.co_filename
-                    base = Path(caller_file).parent
-                else:
-                    base = Path.cwd()
-            finally:
-                del frame
+            # Find the first frame outside this module
+            current_dir = Path(__file__).parent
+            for frame_info in inspect.stack():
+                caller_file = Path(frame_info.filename)
+                # Skip frames that are internal to fast_logger
+                if caller_file.parent != current_dir:
+                    # Found the caller script
+                    if caller_file.exists() and caller_file.is_file():
+                        base = caller_file.parent
+                    else:
+                        base = Path.cwd()
+                    break
+            else:
+                # Fallback if stack inspection fails
+                base = Path.cwd()
 
         log_dir = base / self.log_folder
         log_dir.mkdir(parents=True, exist_ok=True)

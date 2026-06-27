@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: python-fast-logger
-Version: 0.1.0
+Version: 0.1.1
 Summary: A simple, no-fuss logging setup for Python applications
 Author-email: Ravi Mishra <ravi@paisafintech.com>
 Maintainer-email: Ravi Mishra <ravi@paisafintech.com>
@@ -15,15 +15,13 @@ Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
 Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 3.7
-Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
 Classifier: Programming Language :: Python :: 3.12
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Classifier: Topic :: System :: Logging
-Requires-Python: >=3.7
+Requires-Python: >=3.9
 Description-Content-Type: text/markdown
 License-File: LICENSE
 Provides-Extra: dev
@@ -216,7 +214,7 @@ logger = quick_logger("my_app")
 
 ## Requirements
 
-- Python 3.7+
+- Python 3.9+
 - No external dependencies
 
 ## License
