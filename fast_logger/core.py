@@ -249,7 +249,7 @@ class FastLogger:
         if self.async_safe:
             # Route all records through an in-process queue so the calling
             # thread is never blocked by file/network I/O.
-            self._queue: Queue[Any] = Queue(maxsize=-1)  # unbounded
+            self._queue = Queue(maxsize=-1)  # unbounded
             queue_handler = QueueHandler(self._queue)
             queue_handler.setLevel(self.level)
             self._logger.addHandler(queue_handler)
