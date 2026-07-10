@@ -17,8 +17,8 @@ try:
 except ImportError:
     TEXTUAL_AVAILABLE = False
 
-    class App:
-        pass  # type: ignore
+    class App:  # type: ignore[no-redef]
+        pass
 
     ComposeResult = Any  # type: ignore
 
