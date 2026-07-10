@@ -63,3 +63,14 @@ target-version = ['py39', 'py310', 'py311']
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "starlette.*",
+    "rich.*",
+    "PIL.*",
+    "requests.*",
+    "opentelemetry.*",
+    "textual.*"
+]
+ignore_missing_imports = true
