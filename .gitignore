@@ -1,0 +1,37 @@
+# Build / distribution
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Test / coverage
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Type checker
+.mypy_cache/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs produced during local testing
+fast_logger/logs/
+tests/logs/
+logs/
+*.log
