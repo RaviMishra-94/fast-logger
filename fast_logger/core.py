@@ -263,7 +263,11 @@ class FastLogger:
                 if config:
                     break
 
-        return cls(name=name, **config)
+        import inspect
+
+        valid_params = set(inspect.signature(cls.__init__).parameters.keys()) - {"self"}
+        filtered_config = {k: v for k, v in config.items() if k in valid_params}
+        return cls(name=name, **filtered_config)
 
     # ------------------------------------------------------------------
     # Internal helpers
@@ -889,6 +893,7 @@ class FastLogger:
 
     def record(self, capacity: int = 1000) -> "FastLogger":
         """Start recording logs into memory for later saving."""
+        self.info(f"Session recording started (capacity={capacity} logs)")
         if not hasattr(self, "_memory_handler"):
             from logging.handlers import MemoryHandler
 
@@ -899,7 +904,6 @@ class FastLogger:
             self._memory_handler.setLevel(logging.DEBUG)
             if self._logger:
                 self._logger.addHandler(self._memory_handler)
-        self.info(f"Session recording started (capacity={capacity} logs)")
         return self
 
     def save(self, filepath: str = "bug.fl") -> None:
@@ -909,6 +913,7 @@ class FastLogger:
                 for record in self._memory_handler.buffer:
                     f.write(self._memory_handler.format(record) + "\n")
             self.info(f"Session saved to {filepath}")
+            self._memory_handler.buffer.clear()
         else:
             self.warning("No session recording active. Call logger.record() first.")
 

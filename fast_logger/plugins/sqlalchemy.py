@@ -28,7 +28,10 @@ def patch(logger: Any) -> None:
             context: Any,
             executemany: bool,
         ) -> None:
-            start_time = conn.info["query_start_time"].pop(-1)
+            times = conn.info.get("query_start_time", [])
+            if not times:
+                return
+            start_time = times.pop(-1)
             elapsed = (time.perf_counter() - start_time) * 1000
             logger.debug(f"Query executed in {elapsed:.2f}ms")
 

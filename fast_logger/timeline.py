@@ -13,7 +13,6 @@ try:
     from rich.console import Console
     from rich.table import Table
     from rich.text import Text
-    from rich.bar import Bar
 except ImportError:
     Console = None  # type: ignore
 
@@ -47,9 +46,9 @@ def generate_gantt(log_path: str) -> None:
                 ):
                     ts_str = data.get("timestamp", "")
                     try:
-                        dt = datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S,%f")
+                        dt = datetime.fromisoformat(ts_str)
                         current_ts = dt.timestamp()
-                    except ValueError:
+                    except (ValueError, TypeError):
                         continue
 
                     # Parse title

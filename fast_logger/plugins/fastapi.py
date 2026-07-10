@@ -25,6 +25,9 @@ def patch(logger: Any) -> None:
                     )
                     raise
 
+        if hasattr(FastAPI, "_fast_logger_plugin_patched"):
+            return
+
         original_init = FastAPI.__init__
 
         def patched_init(self: Any, *args: Any, **kwargs: Any) -> None:
@@ -32,6 +35,7 @@ def patch(logger: Any) -> None:
             self.add_middleware(FastLoggerMiddleware)
 
         FastAPI.__init__ = patched_init  # type: ignore
+        setattr(FastAPI, "_fast_logger_plugin_patched", True)
         logger.info(
             "Plugin 'fastapi' active: Monkey-patched FastAPI.__init__ to add FastLoggerMiddleware"
         )

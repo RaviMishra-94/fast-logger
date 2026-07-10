@@ -41,9 +41,9 @@ def replay_logs(log_path: str, speed_multiplier: float = 1.0) -> None:
                 ts_str = data.get("timestamp", "")
 
                 try:
-                    dt = datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S,%f")
+                    dt = datetime.fromisoformat(ts_str)
                     current_ts = dt.timestamp()
-                except ValueError:
+                except (ValueError, TypeError):
                     current_ts = time.time()  # fallback if parsing fails
 
                 if last_timestamp is not None:
@@ -68,8 +68,9 @@ def replay_logs(log_path: str, speed_multiplier: float = 1.0) -> None:
                     elif lvl == "DEBUG":
                         color = "cyan"
 
-                    text = Text(f"[{ts_str}] {lvl}: {msg}")
-                    text.stylize(color, 26, 26 + len(lvl))
+                    prefix = f"[{ts_str}] "
+                    text = Text(f"{prefix}{lvl}: {msg}")
+                    text.stylize(color, len(prefix), len(prefix) + len(lvl))
                     console.print(text)
                 else:
                     print(f"[{ts_str}] {lvl}: {msg}")
