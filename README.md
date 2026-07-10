@@ -531,12 +531,6 @@ If fast-logger has saved you time or helped your project, please consider suppor
   <img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?logo=buymeacoffee&logoColor=black&style=for-the-badge" alt="Buy Me a Coffee">
 </a>
 
-<br><br>
-
-<a href="https://github.com/sponsors/RaviMishra-94">
-  <img src="https://github.com/sponsors/RaviMishra-94/button" alt="Sponsor RaviMishra-94" height="32" width="114" style="border: 0; border-radius: 6px;">
-</a>
-
 ---
 
 ## License
