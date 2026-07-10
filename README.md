@@ -21,13 +21,14 @@ Fast Logger gives you zero-config, dependency-free logging with built-in debuggi
 |---|---|---|---|
 | Zero config | ❌ | ✅ | ✅ |
 | Zero dependencies | ✅ | ❌ | ✅ |
-| Rich tracebacks + fix suggestions | ❌ | ❌ | ✅ |
+| Enhanced tracebacks + diagnostics | ❌ | ❌ | ✅ |
 | One-line framework plugins | ❌ | ❌ | ✅ |
+| Decorators (`@catch`, `@trace`, `@profile`) | ❌ | Partial | ✅ |
 | Session record & export (HTML/MD) | ❌ | ❌ | ✅ |
 | TUI log viewer & CLI toolkit | ❌ | ❌ | ✅ |
 | Built-in themes | ❌ | ❌ | ✅ |
-| Secret masking | ❌ | ❌ | ✅ |
-| Async-safe (QueueHandler) | Manual | ✅ | ✅ |
+| Secret masking | Custom | Custom | Built-in |
+| Built-in async logging | Manual | ✅ | ✅ |
 
 ---
 
