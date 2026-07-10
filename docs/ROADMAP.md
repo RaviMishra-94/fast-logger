@@ -22,7 +22,7 @@
 * ✅ Async safe
 * ⏳ Rich formatting for dict/json
 * ⏳ Progress bars
-* ⏳ Table printing
+* ✅ Table printing
 * ⏳ Tree printing
 * ⏳ Markdown/code block logging
 
@@ -56,40 +56,40 @@ def create_user():
     ...
 ```
 
-### SQL formatter
+### ✅ SQL formatter
 Automatically format SQL strings.
 
-### HTTP formatter
+### ✅ HTTP formatter
 Format HTTP requests with headers and body.
 
-### JSON pretty printer
+### ✅ JSON pretty printer
 Automatically indent dicts.
 
-### Object inspector
+### ✅ Object inspector
 `logger.inspect(user)` - tree view of an object.
 
-### Exception helper
+### ✅ Exception helper
 Beautiful exception formatting with suggestions.
 
 ---
 
 ## Tier 3 (Features that can make it stand out)
 
-* AI-style panels
-* Variable watcher (`logger.watch(price)`)
-* Change detector (`logger.diff(old, new)`)
-* Memory/CPU/GPU logger
-* Benchmark helper
-* Request timeline
-* Live dashboard
-* Log replay
-* Automatic secret masking
-* Screenshot logger (desktop)
-* Environment summary
-* Network logger
-* Docker/Kubernetes detection
-* Automatic OpenTelemetry tracing
-* FastAPI middleware with request IDs
-* Automatic correlation IDs
-* `logger.curl(request)`
-* Built-in log viewer TUI
+* ✅ AI-style panels
+* ✅ Variable watcher (`logger.watch(price)`)
+* ✅ Change detector (`logger.diff(old, new)`)
+* ⏳ Memory/CPU/GPU logger
+* ⏳ Benchmark helper
+* ⏳ Request timeline
+* ⏳ Live dashboard
+* ⏳ Log replay
+* ✅ Automatic secret masking
+* ⏳ Screenshot logger (desktop)
+* ✅ Environment summary
+* ⏳ Network logger
+* ⏳ Docker/Kubernetes detection
+* ⏳ Automatic OpenTelemetry tracing
+* ✅ FastAPI middleware with request IDs
+* ✅ Automatic correlation IDs
+* ⏳ `logger.curl(request)`
+* ⏳ Built-in log viewer TUI

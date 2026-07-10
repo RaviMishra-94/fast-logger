@@ -4,6 +4,11 @@ Fast Logger - A simple, no-fuss logging setup for Python applications.
 This package provides a quick and easy way to set up logging in Python applications
 with sensible defaults, rotating file handlers, and console output.
 
+New in 0.4.0:
+  • SQL, JSON, HTTP Formatters  — logger.sql(), logger.json(), logger.http()
+  • Object Inspector            — logger.inspect()
+  • Exception Helper            — logger.catch() context manager
+
 New in 0.3.0:
   • Secret masking              — mask_secrets=True
   • Variable watch & diff       — logger.watch(), logger.diff()
@@ -57,7 +62,7 @@ from .core import (
     setup_logger,
 )
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 __author__ = "Ravi Mishra"
 __email__ = "ravi@iscodesearch.com"
 

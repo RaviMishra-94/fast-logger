@@ -19,7 +19,7 @@ from functools import wraps
 from logging.handlers import QueueHandler, QueueListener, RotatingFileHandler
 from pathlib import Path
 from queue import Queue
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, Optional, Union, Generator
 
 try:
     from rich.console import Console
@@ -31,6 +31,7 @@ try:
 except ImportError:
     RICH_AVAILABLE = False
 
+from .formatters import format_sql, format_json, format_http
 from .masking import mask_secrets_in_string
 from .sysinfo import get_system_info
 
@@ -486,6 +487,70 @@ class FastLogger:
         """Logs system and environment information."""
         info = get_system_info()
         self._log(level.lower(), f"System Info: {json.dumps(info, indent=2)}")
+
+    def sql(self, query: str, level: str = "INFO") -> None:
+        """Formats and logs a SQL query."""
+        formatted = format_sql(query)
+        if RICH_AVAILABLE and not isinstance(formatted, str):
+            console = Console(force_terminal=self.color_output)
+            with console.capture() as capture:
+                console.print(formatted)
+            self._log(level.lower(), "\n" + capture.get())
+        else:
+            self._log(level.lower(), f"\n{formatted}")
+
+    def json(self, data: dict[str, Any], level: str = "INFO") -> None:
+        """Formats and logs a JSON dictionary."""
+        formatted = format_json(data)
+        if RICH_AVAILABLE and not isinstance(formatted, str):
+            console = Console(force_terminal=self.color_output)
+            with console.capture() as capture:
+                console.print(formatted)
+            self._log(level.lower(), "\n" + capture.get())
+        else:
+            self._log(level.lower(), f"\n{formatted}")
+
+    def http(self, req_resp: Any, level: str = "INFO") -> None:
+        """Formats and logs an HTTP request/response or dictionary payload."""
+        formatted = format_http(req_resp)
+        if RICH_AVAILABLE and not isinstance(formatted, str):
+            console = Console(force_terminal=self.color_output)
+            with console.capture() as capture:
+                console.print(formatted)
+            self._log(level.lower(), "\n" + capture.get())
+        else:
+            self._log(level.lower(), f"\n{formatted}")
+
+    def inspect(self, obj: Any, level: str = "INFO") -> None:
+        """Inspects an object structure."""
+        if RICH_AVAILABLE:
+            from rich import inspect as rich_inspect
+            console = Console(force_terminal=self.color_output)
+            with console.capture() as capture:
+                rich_inspect(obj, console=console, methods=True)
+            self._log(level.lower(), "\n" + capture.get())
+        else:
+            self._log(level.lower(), f"INSPECT:\n{dir(obj)}\n{vars(obj) if hasattr(obj, '__dict__') else ''}")
+
+    @contextmanager
+    def catch(self, message: str = "An error occurred", reraise: bool = True) -> Generator[None, None, None]:
+        """
+        Context manager to catch exceptions and log them beautifully.
+        If rich is available, prints a rich traceback.
+        """
+        try:
+            yield
+        except Exception as e:
+            if RICH_AVAILABLE:
+                from rich.traceback import Traceback
+                console = Console(force_terminal=self.color_output)
+                with console.capture() as capture:
+                    console.print(Traceback.from_exception(type(e), e, e.__traceback__, show_locals=True))
+                self._log("error", f"{message}\n{capture.get()}")
+            else:
+                self.exception(message)
+            if reraise:
+                raise
 
     # Convenience log-level methods -----------------------------------
 
