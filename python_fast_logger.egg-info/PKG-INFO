@@ -1,15 +1,15 @@
 Metadata-Version: 2.4
 Name: python-fast-logger
-Version: 0.1.1
-Summary: A simple, no-fuss logging setup for Python applications
-Author-email: Ravi Mishra <ravi@paisafintech.com>
-Maintainer-email: Ravi Mishra <ravi@paisafintech.com>
+Version: 0.2.0
+Summary: A simple, no-fuss logging setup for Python applications — with colored output, JSON format, and async-safe logging
+Author-email: Ravi Mishra <ravi@iscodesearch.com>
+Maintainer-email: Ravi Mishra <ravi@iscodesearch.com>
 License: MIT
 Project-URL: Homepage, https://github.com/RaviMishra-94/fast-logger
 Project-URL: Documentation, https://github.com/RaviMishra-94/fast-logger/blob/main/README.md
 Project-URL: Repository, https://github.com/RaviMishra-94/fast-logger.git
 Project-URL: Bug Tracker, https://github.com/RaviMishra-94/fast-logger/issues
-Keywords: logging,logger,simple,fast,rotating,file
+Keywords: logging,logger,simple,fast,rotating,file,json,colored,async,structured
 Classifier: Development Status :: 4 - Beta
 Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: MIT License

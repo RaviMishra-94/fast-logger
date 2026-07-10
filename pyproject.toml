@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "python-fast-logger"
-version = "0.1.1"
-description = "A simple, no-fuss logging setup for Python applications"
+version = "0.2.0"
+description = "A simple, no-fuss logging setup for Python applications — with colored output, JSON format, and async-safe logging"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
@@ -27,7 +27,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: System :: Logging",
 ]
-keywords = ["logging", "logger", "simple", "fast", "rotating", "file"]
+keywords = ["logging", "logger", "simple", "fast", "rotating", "file", "json", "colored", "async", "structured"]
 requires-python = ">=3.9"
 dependencies = []
 

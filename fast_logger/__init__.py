@@ -4,6 +4,11 @@ Fast Logger - A simple, no-fuss logging setup for Python applications.
 This package provides a quick and easy way to set up logging in Python applications
 with sensible defaults, rotating file handlers, and console output.
 
+New in 0.2.0:
+  • Colored console output      — pass color_output=True to FastLogger
+  • Structured JSON log format  — pass json_format=True to FastLogger
+  • Async-safe logging          — pass async_safe=True to FastLogger
+
 Basic usage:
     from fast_logger import get_logger
 
@@ -23,19 +28,31 @@ Advanced usage:
         name="my_app",
         level="DEBUG",
         max_file_size_mb=100,
-        backup_count=5
+        backup_count=5,
+        color_output=True,    # colourised console
+        json_format=True,     # structured JSON logs
+        async_safe=True,      # non-blocking via QueueHandler
     )
     logger.info("Hello, world!")
 """
 
-from .core import FastLogger, setup_logger, get_logger, quick_logger
+from .core import (
+    ColorFormatter,
+    FastLogger,
+    JsonFormatter,
+    get_logger,
+    quick_logger,
+    setup_logger,
+)
 
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 __author__ = "Ravi Mishra"
 __email__ = "ravi@iscodesearch.com"
 
 __all__ = [
     "FastLogger",
+    "ColorFormatter",
+    "JsonFormatter",
     "setup_logger",
     "get_logger",
     "quick_logger",
