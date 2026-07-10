@@ -56,7 +56,8 @@ class TestTier2Formatters(unittest.TestCase):
 
     def test_inspect(self) -> None:
         class User:
-            name = "Alice"
+            def __init__(self):
+                self.name = "Alice"
 
         self.logger.inspect(User())
         output = self.stream.getvalue()
