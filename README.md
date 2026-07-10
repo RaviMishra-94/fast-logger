@@ -2,6 +2,10 @@
 
 ![Tests](https://github.com/RaviMishra-94/fast-logger/actions/workflows/python-app.yml/badge.svg)
 
+<p align="center">
+  <img src="demo.svg" width="800" alt="Fast Logger Demo">
+</p>
+
 A professional-grade, no-fuss logging setup for Python applications with sensible defaults and developer productivity tools.
 
 ## Features
