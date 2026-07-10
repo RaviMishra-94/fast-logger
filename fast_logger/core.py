@@ -155,7 +155,7 @@ class FastLogger:
 
     def __init__(
         self,
-        name: str,
+        name: str = "app",
         level: Union[int, str] = logging.INFO,
         log_folder: str = "logs",
         max_file_size_mb: int = 50,
@@ -510,11 +510,25 @@ class FastLogger:
             return decorator
         return decorator(func)
 
-    def use(self, plugin_name: str) -> "FastLogger":
-        """Load and apply a plugin by name."""
+    def use(self, plugin_name: str, target: Any = None) -> "FastLogger":
+        """Activate a named plugin.
+
+        Simple plugins (no target needed)::
+
+            logger.use("fastapi")   # patches FastAPI.__init__ globally
+            logger.use("requests")
+            logger.use("sqlalchemy")
+            logger.use("openai")
+
+        Target plugins (pass the object to patch)::
+
+            logger.use("flask", flask_app)
+            logger.use("redis", redis_client)
+            logger.use("celery", celery_app)
+        """
         from .plugins import load_plugin
 
-        load_plugin(self, plugin_name)
+        load_plugin(self, plugin_name, target)
         return self
 
     # Render features that use Rich if available -----------------------
@@ -641,25 +655,17 @@ class FastLogger:
         self, message: str = "An error occurred", reraise: bool = True
     ) -> Generator[None, None, None]:
         """
-        Context manager to catch exceptions and log them beautifully.
-        If rich is available, prints a rich traceback.
+        Context manager that catches exceptions, logs a rich traceback with
+        heuristic cause suggestions and IDE-clickable file links, then optionally
+        re-raises.
         """
         try:
             yield
         except Exception as e:
-            if RICH_AVAILABLE:
-                from rich.traceback import Traceback
+            from .exceptions import format_rich_traceback
 
-                console = Console(force_terminal=self.color_output)
-                with console.capture() as capture:
-                    console.print(
-                        Traceback.from_exception(
-                            type(e), e, e.__traceback__, show_locals=True
-                        )
-                    )
-                self._log("error", f"{message}\n{capture.get()}")
-            else:
-                self.exception(message)
+            tb_str = format_rich_traceback(e, include_locals=True)
+            self._log("error", f"{message}\n{tb_str}")
             if reraise:
                 raise
 
@@ -830,6 +836,40 @@ class FastLogger:
         except Exception as e:
             self._log("error", f"Failed to capture screenshot: {e}")
 
+    # ------------------------------------------------------------------
+    # Patch / Plugin helpers
+    # ------------------------------------------------------------------
+
+    def patch_fastapi(self, app: Any) -> None:
+        """Attach FastLoggerMiddleware directly to an existing FastAPI app instance."""
+        from .plugins.fastapi import patch_app
+
+        patch_app(app, self)
+
+    def patch_flask(self, app: Any) -> None:
+        """Attach request/response logging hooks to an existing Flask app instance."""
+        from .plugins.flask import patch_flask as _patch_flask
+
+        _patch_flask(app, self)
+
+    def patch_redis(self, client: Any) -> None:
+        """Wrap a Redis client's execute_command to log every command with latency."""
+        from .plugins.redis import patch_redis as _patch_redis
+
+        _patch_redis(client, self)
+
+    def patch_openai(self) -> None:
+        """Monkey-patch openai to log model, tokens, latency, and cost per call."""
+        from .plugins.openai import patch_openai as _patch_openai
+
+        _patch_openai(self)
+
+    def patch_celery(self, app: Any) -> None:
+        """Connect FastLogger to Celery task signals for lifecycle logging."""
+        from .plugins.celery import patch_celery as _patch_celery
+
+        _patch_celery(app, self)
+
     def patch_requests(self) -> None:
         """Monkey-patches the requests library to automatically log all outgoing HTTP calls."""
         try:
@@ -866,6 +906,70 @@ class FastLogger:
             )
         except ImportError:
             self._log("error", "The 'requests' library is not installed.")
+
+    # ------------------------------------------------------------------
+    # Export helpers
+    # ------------------------------------------------------------------
+
+    def export_html(self, source: str, output: Optional[str] = None) -> str:
+        """Export a recorded .fl session to a self-contained HTML report.
+
+        Args:
+            source: Path to the .fl session file.
+            output: Output HTML path. Defaults to ``<source>.html``.
+
+        Returns:
+            Path to the generated HTML file.
+        """
+        from .export import export_html as _export_html
+
+        out = output or (source.rsplit(".", 1)[0] + ".html")
+        _export_html(source, out)
+        self.info(f"HTML report exported to {out}")
+        return out
+
+    def export_markdown(self, source: str, output: Optional[str] = None) -> str:
+        """Export a recorded .fl session to a Markdown report.
+
+        Args:
+            source: Path to the .fl session file.
+            output: Output MD path. Defaults to ``<source>.md``.
+
+        Returns:
+            Path to the generated Markdown file.
+        """
+        from .export import export_markdown as _export_markdown
+
+        out = output or (source.rsplit(".", 1)[0] + ".md")
+        _export_markdown(source, out)
+        self.info(f"Markdown report exported to {out}")
+        return out
+
+    # ------------------------------------------------------------------
+    # Async timeline
+    # ------------------------------------------------------------------
+
+    def async_timeline(self, title: str) -> Any:
+        """Async context manager to measure and log execution blocks as a timeline.
+
+        Usage::
+
+            async with logger.async_timeline("LLM call"):
+                response = await openai_client.chat(...)
+        """
+        import contextlib
+
+        @contextlib.asynccontextmanager  # type: ignore[arg-type]
+        async def _ctx() -> Any:  # type: ignore[misc]
+            start = time.perf_counter()
+            self._log("info", f"Timeline [{title}] START")
+            try:
+                yield
+            finally:
+                elapsed = (time.perf_counter() - start) * 1000
+                self._log("info", f"Timeline [{title}] END ({elapsed:.1f}ms)")
+
+        return _ctx()
 
     @contextmanager
     def span(self, span_name: str) -> Generator[Any, None, None]:

@@ -1,0 +1,127 @@
+
+==================================================
+🌟 TIER 1: CORE LOGGING 🌟
+==================================================
+2026-07-11 01:13:22,500 - demo_app [core.py:389] [P:46386 T:MainThread] - INFO - Application starting up...
+2026-07-11 01:13:22,500 - demo_app [core.py:389] [P:46386 T:MainThread] - WARNING - Memory usage is getting a bit high.
+2026-07-11 01:13:22,500 - demo_app [core.py:389] [P:46386 T:MainThread] - ERROR - Failed to calculate trajectory
+Traceback (most recent call last):
+  File "/home/ravi/work/shine_github/fast-logger/demo.py", line 21, in main
+    1 / 0
+    ~~^~~
+ZeroDivisionError: division by zero
+2026-07-11 01:13:22,501 - demo_app [core.py:389] [P:46386 T:MainThread] - INFO - Core initialization complete! 🚀
+
+==================================================
+🌟 TIER 2: DEVELOPER PRODUCTIVITY 🌟
+==================================================
+2026-07-11 01:13:23,501 - demo_app [core.py:389] [P:46386 T:MainThread] - INFO - User logged in successfully
+
+  user_id=U-123
+  req_id=REQ-999
+
+2026-07-11 01:13:24,321 - demo_app [core.py:389] [P:46386 T:MainThread] - INFO - 
+SELECT * FROM users WHERE active = True;                                        
+
+2026-07-11 01:13:24,322 - demo_app [core.py:389] [P:46386 T:MainThread] - INFO - 
+{
+  "server": "ubuntu-1",
+  "status": "healthy",
+  "uptime": 3600,
+  "metrics": {
+    "cpu": "45%",
+    "mem": "1GB"
+  }
+}
+
+2026-07-11 01:13:25,124 - demo_app [core.py:389] [P:46386 T:MainThread] - INFO - 
+╭──────────────── HTTP Response ────────────────╮
+│ HTTP 200 | POST https://api.example.com/login │
+│                                               │
+│ Headers:                                      │
+│ Content-Type: application/json                │
+│                                               │
+│ Body:                                         │
+│ {"message": "success"}                        │
+╰───────────────────────────────────────────────╯
+
+
+--- Inspect Tool ---
+2026-07-11 01:13:26,126 - demo_app [core.py:389] [P:46386 T:MainThread] - INFO - 
+╭───────────────────────────────╮
+│ DatabaseConnection            │
+│   host            localhost   │
+│   is_connected    True        │
+│   port            5432        │
+╰───────────────────────────────╯
+
+
+--- Benchmark Tool ---
+2026-07-11 01:13:26,176 - demo_app [core.py:389] [P:46386 T:MainThread] - INFO - Benchmark 'Data Processing'
+
+Min
+10.04 ms
+
+Max
+10.09 ms
+
+Average
+10.07 ms
+
+Calls
+5
+
+--- Curl Converter ---
+2026-07-11 01:13:26,983 - demo_app [core.py:389] [P:46386 T:MainThread] - INFO - cURL Command:
+curl -X POST \                                                                  
+  -H 'Auth: Bearer 123' \                                                       
+  'https://api.test.com/data'                                                   
+
+
+==================================================
+🌟 TIER 3: ADVANCED DIAGNOSTICS & UI 🌟
+==================================================
+
+--- Markdown & Tree ---
+2026-07-11 01:13:28,007 - demo_app [core.py:389] [P:46386 T:MainThread] - INFO - 
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                System Status                                 ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+ • CPU: Good                                                                    
+ • Mem: 50%                                                                     
+
+2026-07-11 01:13:28,009 - demo_app [core.py:389] [P:46386 T:MainThread] - INFO - 
+App Structure
+├── src
+│   ├── [0]
+│   │   └── main.py
+│   └── [1]
+│       └── utils.py
+└── tests
+    └── [0]
+        └── test_core.py
+
+
+--- Progress Bar ---
+Processing files... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:00
+
+--- Request Patching (Demo) ---
+2026-07-11 01:13:29,320 - demo_app [core.py:389] [P:46386 T:MainThread] - INFO - Monkey-patching requests library...
+2026-07-11 01:13:29,380 - demo_app [core.py:389] [P:46386 T:MainThread] - INFO - Requests library successfully patched for network logging.
+
+--- Timeline Execution Blocks ---
+2026-07-11 01:13:29,380 - demo_app [core.py:389] [P:46386 T:MainThread] - INFO - Timeline [Database Query] START
+2026-07-11 01:13:29,530 - demo_app [core.py:389] [P:46386 T:MainThread] - INFO - Timeline [Database Query] END (0.150s)
+2026-07-11 01:13:29,530 - demo_app [core.py:389] [P:46386 T:MainThread] - INFO - Timeline [Data Transformation] START
+2026-07-11 01:13:29,580 - demo_app [core.py:389] [P:46386 T:MainThread] - INFO - Timeline [Data Transformation] END (0.050s)
+
+==================================================
+🎉 DEMO COMPLETE 🎉
+==================================================
+Try the interactive tools:
+  Log Viewer:  python -m fast_logger.viewer app.log
+  Gantt Chart: python -m fast_logger.timeline app.log
+  Log Replay:  python -m fast_logger.replay app.log
+==================================================
+
