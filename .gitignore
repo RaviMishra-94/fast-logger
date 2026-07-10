@@ -35,3 +35,4 @@ fast_logger/logs/
 tests/logs/
 logs/
 *.log
+__pycache__/
