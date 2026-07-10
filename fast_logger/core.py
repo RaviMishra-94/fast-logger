@@ -255,10 +255,11 @@ class FastLogger:
     def stop(self) -> None:
         """
         Gracefully shut down the async listener (only needed when
-        ``async_safe=True``).  Call this at application exit.
+        ``async_safe=True``).  Safe to call multiple times.
         """
-        if self._listener is not None:
+        if self._listener is not None and getattr(self._listener, "_thread", None) is not None:
             self._listener.stop()
+            self._listener = None
 
     # Convenience log-level methods -----------------------------------
 
