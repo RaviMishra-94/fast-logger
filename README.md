@@ -515,6 +515,29 @@ Generate a starter config with `fastlogger init`.
 
 ---
 
+## ❤️ Support fast-logger
+
+If fast-logger has saved you time or helped your project, please consider supporting its development.
+
+- ⭐ **Star this repository** — it helps others discover fast-logger
+- ☕ [**Buy me a coffee**](https://buymeacoffee.com/ravimishra94)
+- ❤️ **Sponsor on GitHub**
+
+<a href="https://github.com/sponsors/RaviMishra-94">
+  <img src="https://img.shields.io/badge/Sponsor-%E2%9D%A4-pink?logo=github&style=for-the-badge" alt="Sponsor on GitHub">
+</a>
+<a href="https://buymeacoffee.com/ravimishra94">
+  <img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?logo=buymeacoffee&logoColor=black&style=for-the-badge" alt="Buy Me a Coffee">
+</a>
+
+<br><br>
+
+<a href="https://github.com/sponsors/RaviMishra-94">
+  <img src="https://github.com/sponsors/RaviMishra-94/button" alt="Sponsor RaviMishra-94" height="32" width="114" style="border: 0; border-radius: 6px;">
+</a>
+
+---
+
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
