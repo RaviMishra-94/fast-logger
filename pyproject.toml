@@ -74,6 +74,11 @@ module = [
     "PIL.*",
     "requests.*",
     "opentelemetry.*",
-    "textual.*"
+    "textual.*",
+    "redis.*",
+    "openai.*",
+    "flask.*",
+    "celery.*",
+    "sqlalchemy.*"
 ]
 ignore_missing_imports = true
