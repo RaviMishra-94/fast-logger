@@ -376,15 +376,26 @@ class FastLogger:
 
     # Render features that use Rich if available -----------------------
 
-    def table(self, table_obj: Any, level: str = "INFO") -> None:
+    def table(self, data: Any, title: str = "", level: str = "INFO") -> None:
         """Logs a table. Uses Rich formatting if installed, otherwise stringifies."""
         if RICH_AVAILABLE:
+            from rich.table import Table
+
+            if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
+                table_obj = Table(title=title if title else None)
+                for key in data[0].keys():
+                    table_obj.add_column(str(key))
+                for row in data:
+                    table_obj.add_row(*[str(row.get(k, "")) for k in data[0].keys()])
+            else:
+                table_obj = data
+
             console = Console(force_terminal=self.color_output)
             with console.capture() as capture:
                 console.print(table_obj)
             self._log(level.lower(), "\n" + capture.get())
         else:
-            self._log(level.lower(), str(table_obj))
+            self._log(level.lower(), str(data))
 
     # Convenience log-level methods -----------------------------------
 
