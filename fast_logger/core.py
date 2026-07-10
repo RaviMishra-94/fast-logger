@@ -251,10 +251,10 @@ class FastLogger:
                 break
             elif p.suffix == ".toml":
                 try:
-                    import tomllib
+                    import tomllib  # type: ignore[import-not-found]
                 except ImportError:
                     try:
-                        import tomli as tomllib  # type: ignore
+                        import tomli as tomllib  # type: ignore[import-not-found,no-redef]
                     except ImportError:
                         continue
                 with open(p, "rb") as f:
