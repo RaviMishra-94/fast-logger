@@ -6,6 +6,7 @@ Export recorded log sessions to HTML and Markdown reports.
 
 from __future__ import annotations
 
+import html as html_mod
 import json
 import os
 from datetime import datetime
@@ -49,7 +50,7 @@ _HTML_TEMPLATE = """\
     padding: .75rem 1.25rem; min-width: 100px; }}
   .stat-card .label {{ font-size: .75rem; text-transform: uppercase; color: var(--muted); }}
   .stat-card .value {{ font-size: 1.5rem; font-weight: 700; margin-top: .2rem; }}
-  .log-entry {{ background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--{level_placeholder});
+  .log-entry {{ background: var(--card); border: 1px solid var(--border);
     border-radius: .5rem; padding: .75rem 1rem; margin-bottom: .5rem; }}
   .log-entry .meta {{ display: flex; gap: 1rem; align-items: center; margin-bottom: .3rem; }}
   .badge {{ font-size: .7rem; font-weight: 700; padding: .15rem .5rem; border-radius: 9999px;
@@ -134,8 +135,8 @@ def export_html(source_filepath: str, output_filepath: str) -> None:
         lvl = r.get("level", "INFO").upper()
         color = _LEVEL_COLORS.get(lvl, "#64748b")
         ts = r.get("timestamp", "")
-        msg = r.get("message", "")
-        name = r.get("logger", "")
+        msg = html_mod.escape(r.get("message", ""))
+        name = html_mod.escape(r.get("logger", ""))
         extra = {
             k: v
             for k, v in r.items()
@@ -143,13 +144,11 @@ def export_html(source_filepath: str, output_filepath: str) -> None:
         }
         extra_html = ""
         if extra:
-            extra_json = json.dumps(extra, indent=2, default=str)
+            extra_json = html_mod.escape(json.dumps(extra, indent=2, default=str))
             extra_html = f'<div class="extra">{extra_json}</div>'
         exc_html = ""
         if r.get("exception"):
-            exc_html = (
-                f'<div class="extra" style="color:#ef4444">{r["exception"]}</div>'
-            )
+            exc_html = f'<div class="extra" style="color:#ef4444">{html_mod.escape(str(r["exception"]))}</div>'
 
         entry_parts.append(
             f'<div class="log-entry" style="border-left-color:{color}">'
@@ -163,18 +162,17 @@ def export_html(source_filepath: str, output_filepath: str) -> None:
             f"</div>"
         )
 
-    html = _HTML_TEMPLATE.format(
-        title=os.path.basename(source_filepath),
+    html_out = _HTML_TEMPLATE.format(
+        title=html_mod.escape(os.path.basename(source_filepath)),
         generated_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         log_count=len(records),
-        source=source_filepath,
+        source=html_mod.escape(source_filepath),
         stats_html="\n".join(stats_html_parts),
         entries_html="\n".join(entry_parts),
-        level_placeholder="level-placeholder",  # unused placeholder
     )
 
     with open(output_filepath, "w", encoding="utf-8") as f:
-        f.write(html)
+        f.write(html_out)
 
 
 def export_markdown(source_filepath: str, output_filepath: str) -> None:

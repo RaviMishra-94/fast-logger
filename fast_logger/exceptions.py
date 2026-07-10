@@ -9,9 +9,7 @@ No LLM required. Pure static pattern matching.
 
 from __future__ import annotations
 
-import inspect
 import os
-import sys
 import traceback
 from typing import Any, Optional
 
