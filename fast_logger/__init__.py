@@ -4,6 +4,12 @@ Fast Logger - A simple, no-fuss logging setup for Python applications.
 This package provides a quick and easy way to set up logging in Python applications
 with sensible defaults, rotating file handlers, and console output.
 
+New in 1.0.0:
+  • Framework Plugins                  — logger.patch_fastapi(), patch_flask(), patch_redis()
+  • Heuristic Exception Diagnostics    — Clickable IDE tracebacks & human-readable suggestions
+  • Session Recording & Export         — .fl recording, HTML/Markdown exports
+  • Built-in Themes                    — default, cyberpunk, dracula, minimal
+
 New in 0.6.0:
   • Log Viewer TUI & Replay Tool       — python -m fast_logger.viewer / replay
   • OpenTelemetry Tracing              — logger.span("name")
@@ -75,7 +81,7 @@ from .core import (
     setup_logger,
 )
 
-__version__ = "0.6.0"
+__version__ = "1.0.0"
 __author__ = "Ravi Mishra"
 __email__ = "ravi@iscodesearch.com"
 

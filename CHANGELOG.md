@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.0] - 2026-07-11
+
+### Added
+- **1-Line Framework Plugins**: Auto-patching plugins for FastAPI (`patch_fastapi`), Flask (`patch_flask`), Redis (`patch_redis`), OpenAI (`patch_openai`), Celery (`patch_celery`), Requests (`patch_requests`), and SQLAlchemy (`patch_sqlalchemy`).
+- **Heuristic Exception Diagnostics**: AI-like root cause suggestions and clickable IDE tracebacks (`fast_logger.exceptions`).
+- **Session Recording & Export**: `.fl` session recording with `logger.record()`, `logger.save()`, and full HTML/Markdown report export (`fast_logger.export`).
+- **Modular Color Themes**: Built-in visual themes (`default`, `cyberpunk`, `dracula`, `minimal`).
+- **Developer Productivity Tools**: `@logger.catch()`, `@logger.trace()`, `@logger.profile()`, secret masking, and comprehensive CLI toolkit (`fastlogger doctor`, `tail`, `ui`, `replay`, `stats`, `timeline`, `benchmark`).
+
 ## [0.6.0] - 2026-07-10
 
 ### Added
