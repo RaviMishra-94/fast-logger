@@ -4,8 +4,8 @@ import time
 
 def patch(logger: Any) -> None:
     try:
-        from sqlalchemy import event
-        from sqlalchemy.engine import Engine
+        from sqlalchemy import event  # type: ignore
+        from sqlalchemy.engine import Engine  # type: ignore
 
         @event.listens_for(Engine, "before_cursor_execute")
         def before_cursor_execute(

@@ -254,7 +254,7 @@ class FastLogger:
                     import tomllib
                 except ImportError:
                     try:
-                        import tomli as tomllib  # type: ignore[no-redef]
+                        import tomli as tomllib  # type: ignore
                     except ImportError:
                         continue
                 with open(p, "rb") as f:

@@ -4,8 +4,8 @@ import time
 
 def patch(logger: Any) -> None:
     try:
-        from fastapi import Request, Response, FastAPI
-        from starlette.middleware.base import BaseHTTPMiddleware
+        from fastapi import Request, Response, FastAPI  # type: ignore
+        from starlette.middleware.base import BaseHTTPMiddleware  # type: ignore
 
         class FastLoggerMiddleware(BaseHTTPMiddleware):
             async def dispatch(self, request: Request, call_next: Any) -> Response:
