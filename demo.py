@@ -22,6 +22,7 @@ def main():
     except ZeroDivisionError as e:
         logger.error("Failed to calculate trajectory", exc_info=e)
     logger.info("Core initialization complete! 🚀")
+    time.sleep(1.0)
 
     print("\n" + "=" * 50)
     print("🌟 TIER 2: DEVELOPER PRODUCTIVITY 🌟")
@@ -30,6 +31,7 @@ def main():
     # Context Binding
     user_logger = logger.bind(user_id="U-123", req_id="REQ-999")
     user_logger.info("User logged in successfully")
+    time.sleep(0.8)
 
     # Formatters
     logger.sql("SELECT * FROM users WHERE active = True;")
@@ -41,6 +43,7 @@ def main():
         "metrics": {"cpu": "45%", "mem": "1GB"},
     }
     logger.json(data)
+    time.sleep(0.8)
 
     class FakeResponse:
         status_code = 200
@@ -54,6 +57,7 @@ def main():
         url = "https://api.example.com/login"
 
     logger.http(FakeResponse())
+    time.sleep(1.0)
 
     # Tools
     print("\n--- Inspect Tool ---")
@@ -72,6 +76,7 @@ def main():
         time.sleep(0.01)
 
     logger.benchmark("Data Processing", dummy_task, iterations=5)
+    time.sleep(0.8)
 
     print("\n--- Curl Converter ---")
     logger.curl(
@@ -82,6 +87,7 @@ def main():
             "json": {"key": "val"},
         }
     )
+    time.sleep(1.0)
 
     print("\n" + "=" * 50)
     print("🌟 TIER 3: ADVANCED DIAGNOSTICS & UI 🌟")
@@ -92,6 +98,7 @@ def main():
     logger.tree(
         "App Structure", {"src": ["main.py", "utils.py"], "tests": ["test_core.py"]}
     )
+    time.sleep(1.0)
 
     print("\n--- Progress Bar ---")
     with logger.progress() as progress:
