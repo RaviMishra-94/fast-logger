@@ -30,9 +30,9 @@ Advanced usage:
 
 from .core import FastLogger, setup_logger, get_logger, quick_logger
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __author__ = "Ravi Mishra"
-__email__ = "ravi@paisafintech.com"
+__email__ = "ravi@iscodesearch.com"
 
 __all__ = [
     "FastLogger",
