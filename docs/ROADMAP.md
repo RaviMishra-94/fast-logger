@@ -80,16 +80,16 @@ Beautiful exception formatting with suggestions.
 * ✅ Change detector (`logger.diff(old, new)`)
 * ✅ Memory/CPU/GPU logger
 * ✅ Benchmark helper
-* ❌ Request timeline (Out of scope)
-* ❌ Live dashboard (Out of scope)
-* ❌ Log replay (Out of scope)
+* ✅ Request timeline
+* ✅ Live dashboard
+* ✅ Log replay
 * ✅ Automatic secret masking
-* ❌ Screenshot logger (desktop) (Out of scope)
+* ✅ Screenshot logger (desktop)
 * ✅ Environment summary
-* ❌ Network logger (Out of scope)
+* ✅ Network logger
 * ✅ Docker/Kubernetes detection
-* ❌ Automatic OpenTelemetry tracing (Out of scope)
+* ✅ Automatic OpenTelemetry tracing
 * ✅ FastAPI middleware with request IDs
 * ✅ Automatic correlation IDs
 * ✅ `logger.curl(request)`
-* ❌ Built-in log viewer TUI (Out of scope)
+* ✅ Built-in log viewer TUI

@@ -697,6 +697,71 @@ class FastLogger:
         else:
             self._log("info", f"cURL Command:\n{curl_cmd}")
 
+    def screenshot(self, filename: str = "screenshot.png") -> None:
+        """Takes a screenshot of the desktop and logs the save path."""
+        try:
+            from PIL import ImageGrab
+            img = ImageGrab.grab()
+            log_dir = self._get_log_directory()
+            path = log_dir / filename
+            img.save(path)
+            self._log("info", f"Screenshot successfully captured and saved to {path}")
+        except ImportError:
+            self._log("error", "Pillow is required for screenshot logging (pip install Pillow)")
+        except Exception as e:
+            self._log("error", f"Failed to capture screenshot: {e}")
+
+    def patch_requests(self) -> None:
+        """Monkey-patches the requests library to automatically log all outgoing HTTP calls."""
+        try:
+            import requests
+            if hasattr(requests.Session, "_fast_logger_patched"):
+                return
+                
+            original_request = requests.Session.request
+            
+            def new_request(sess: Any, method: str, url: str, **kwargs: Any) -> Any:
+                start = time.perf_counter()
+                self._log("info", f"Network Request START: {method} {url}")
+                try:
+                    resp = original_request(sess, method, url, **kwargs)
+                    elapsed = time.perf_counter() - start
+                    self._log("info", f"Network Request SUCCESS: {method} {url} [{resp.status_code}] ({elapsed:.3f}s)")
+                    return resp
+                except Exception as e:
+                    elapsed = time.perf_counter() - start
+                    self._log("error", f"Network Request FAILED: {method} {url} - {str(e)} ({elapsed:.3f}s)")
+                    raise
+                    
+            requests.Session.request = new_request # type: ignore
+            setattr(requests.Session, "_fast_logger_patched", True)
+            self._log("info", "Requests library successfully patched for network logging.")
+        except ImportError:
+            self._log("error", "The 'requests' library is not installed.")
+
+    @contextmanager
+    def span(self, span_name: str) -> Generator[Any, None, None]:
+        """Context manager for distributed OpenTelemetry tracing."""
+        try:
+            from opentelemetry import trace as otel_trace  # type: ignore
+            tracer = otel_trace.get_tracer(self.name)
+            with tracer.start_as_current_span(span_name) as span_obj:
+                yield span_obj
+        except ImportError:
+            # Fallback if opentelemetry is not installed
+            yield None
+
+    @contextmanager
+    def timeline(self, title: str) -> Generator[None, None, None]:
+        """Context manager to measure and log execution blocks as a timeline."""
+        start = time.perf_counter()
+        self._log("info", f"Timeline [{title}] START")
+        try:
+            yield
+        finally:
+            elapsed = time.perf_counter() - start
+            self._log("info", f"Timeline [{title}] END ({elapsed:.3f}s)")
+
     def __enter__(self) -> "FastLogger":
         return self
 
