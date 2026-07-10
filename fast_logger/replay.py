@@ -15,7 +15,7 @@ def replay_logs(log_path: str, speed_multiplier: float = 1.0) -> None:
     path = Path(log_path)
     if not path.exists():
         print(f"Error: Log file {path} not found.")
-        sys.exit(1)
+        return
 
     try:
         from rich.console import Console

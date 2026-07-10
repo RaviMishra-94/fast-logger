@@ -5,13 +5,13 @@ from fast_logger.core import FastLogger
 
 
 class DummyResponse:
-    def __init__(self, status_code, text, method="GET", url="http://example.com"):
+    def __init__(self, status_code: int, text: str, method: str = "GET", url: str = "http://example.com") -> None:
         self.status_code = status_code
         self.text = text
         self.headers = {"Content-Type": "application/json"}
 
         class DummyRequest:
-            def __init__(self, method):
+            def __init__(self, method: str) -> None:
                 self.method = method
 
         self.request = DummyRequest(method)
@@ -56,7 +56,7 @@ class TestTier2Formatters(unittest.TestCase):
 
     def test_inspect(self) -> None:
         class User:
-            def __init__(self):
+            def __init__(self) -> None:
                 self.name = "Alice"
 
         self.logger.inspect(User())

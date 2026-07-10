@@ -15,6 +15,7 @@ class TestFinalSprint(unittest.TestCase):
             compress_backups=True,
         )
         # Override handler stream
+        assert self.logger._logger is not None
         for h in self.logger._logger.handlers:
             if hasattr(h, "stream"):
                 h.stream = self.stream

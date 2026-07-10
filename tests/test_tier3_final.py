@@ -13,6 +13,7 @@ class TestTier3Final(unittest.TestCase):
             color_output=False,
             json_format=False,
         )
+        assert self.logger._logger is not None
         for h in self.logger._logger.handlers:
             if hasattr(h, "stream"):
                 h.stream = self.stream
