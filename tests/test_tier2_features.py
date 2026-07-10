@@ -37,7 +37,8 @@ class TestTier2Features:
         log_file = tmp_path / "logs" / "test_bind_text.log"
         content = log_file.read_text().strip()
 
-        assert "Storage low [request_id=xyz-987]" in content
+        assert "Storage low" in content
+        assert "request_id=xyz-987" in content
 
     def test_timer_context_manager(self, tmp_path: Path) -> None:
         """Test that logger.timer() logs execution time."""
@@ -49,7 +50,7 @@ class TestTier2Features:
         log_file = tmp_path / "logs" / "test_timer.log"
         content = log_file.read_text().strip()
 
-        assert "Database Query took" in content
+        assert "Database Query" in content
         assert "ms" in content
 
     def test_trace_decorator(self, tmp_path: Path) -> None:
@@ -66,6 +67,6 @@ class TestTier2Features:
         log_file = tmp_path / "logs" / "test_trace.log"
         content = log_file.read_text().strip()
 
-        # Expecting ENTER and EXIT
-        assert "ENTER dummy_function()" in content
-        assert "EXIT dummy_function() took" in content
+        # Expecting Entering and Exiting
+        assert "Entering dummy_function(21)" in content
+        assert "Exiting dummy_function (Time:" in content

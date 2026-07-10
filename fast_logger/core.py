@@ -52,29 +52,21 @@ except ImportError:
 _RESET = "\033[0m"
 _BOLD = "\033[1m"
 
-_LEVEL_COLORS: dict[int, str] = {
-    logging.DEBUG: "\033[36m",  # Cyan
-    logging.INFO: "\033[32m",  # Green
-    logging.WARNING: "\033[33m",  # Yellow
-    logging.ERROR: "\033[31m",  # Red
-    logging.CRITICAL: "\033[35m",  # Magenta
-}
-
-_LEVEL_ICONS: dict[int, str] = {
-    logging.DEBUG: "🚀",
-    logging.INFO: "✓",
-    logging.WARNING: "⚠",
-    logging.ERROR: "✗",
-    logging.CRITICAL: "🔥",
-}
-
 
 class ColorFormatter(logging.Formatter):
     """Formatter that wraps the level name (and optionally the whole line) in ANSI color."""
 
+    def __init__(self, fmt: str, theme: Any = None):
+        super().__init__(fmt)
+        if theme is None:
+            from .themes import get_theme
+
+            theme = get_theme("default")
+        self.theme = theme
+
     def format(self, record: logging.LogRecord) -> str:
-        color = _LEVEL_COLORS.get(record.levelno, "")
-        icon = _LEVEL_ICONS.get(record.levelno, "")
+        color = self.theme.colors.get(record.levelno, "")
+        icon = self.theme.icons.get(record.levelno, "")
         record = logging.makeLogRecord(record.__dict__)  # shallow copy
         record.levelname = f"{color}{_BOLD}{icon} {record.levelname}{_RESET}"
         formatted = super().format(record)
@@ -180,6 +172,7 @@ class FastLogger:
         # --- new in 0.4.0 / 0.5.0 ---
         compress_backups: bool = False,
         pretty_exceptions: bool = True,
+        theme: str = "default",
         # Internal params for context binding
         _existing_logger: Optional[logging.Logger] = None,
         _bound_kwargs: Optional[dict[str, Any]] = None,
@@ -198,6 +191,11 @@ class FastLogger:
         self.mask_secrets = mask_secrets
         self.compress_backups = compress_backups
         self.pretty_exceptions = pretty_exceptions
+        self.theme_name = theme
+
+        from .themes import get_theme
+
+        self.theme = get_theme(theme)
 
         if self.pretty_exceptions and RICH_AVAILABLE:
             install_rich_traceback(show_locals=True)
@@ -225,6 +223,47 @@ class FastLogger:
         if RICH_AVAILABLE and self.color_output and not _existing_logger:
             install_rich_traceback(show_locals=False)
             rich.pretty.install()
+
+    @classmethod
+    def from_config(
+        cls, name: str = "fast_logger", path: str | None = None
+    ) -> "FastLogger":
+        """
+        Instantiate FastLogger from configuration files.
+        Looks for `fast_logger.json` or `pyproject.toml` (under [tool.fast-logger]).
+        """
+        from pathlib import Path
+        import json
+
+        config = {}
+        search_paths = (
+            [Path(path)]
+            if path
+            else [Path.cwd() / "fast_logger.json", Path.cwd() / "pyproject.toml"]
+        )
+
+        for p in search_paths:
+            if not p.exists():
+                continue
+            if p.suffix == ".json":
+                with open(p, "r", encoding="utf-8") as f:
+                    config = json.load(f)
+                break
+            elif p.suffix == ".toml":
+                try:
+                    import tomllib
+                except ImportError:
+                    try:
+                        import tomli as tomllib  # type: ignore[no-redef]
+                    except ImportError:
+                        continue
+                with open(p, "rb") as f:
+                    data = tomllib.load(f)
+                    config = data.get("tool", {}).get("fast-logger", {})
+                if config:
+                    break
+
+        return cls(name=name, **config)
 
     # ------------------------------------------------------------------
     # Internal helpers
@@ -260,7 +299,7 @@ class FastLogger:
         if self.json_format:
             return JsonFormatter()
         if color and self.color_output:
-            return ColorFormatter(self.log_format)
+            return ColorFormatter(self.log_format, theme=self.theme)
         return logging.Formatter(self.log_format)
 
     def _setup_logger(self) -> None:
@@ -336,11 +375,13 @@ class FastLogger:
         if extra:
             kwargs["extra"] = extra
 
-            # If not using JSON format, we might want to append bound context
-            # to the string output so the user sees it in the console.
+            # If not using JSON format, we append bound context below the message
             if not self.json_format and extra:
-                context_str = " | ".join(f"{k}={v}" for k, v in extra.items())
-                message = f"{message} [{context_str}]"
+                context_str = "\n".join(f"  {k}={v}" for k, v in extra.items())
+                if message.strip():
+                    message = f"{message}\n\n{context_str}\n"
+                else:
+                    message = f"{context_str}\n"
 
         if self.mask_secrets:
             message = mask_secrets_in_string(message)
@@ -386,40 +427,91 @@ class FastLogger:
             json_format=self.json_format,
             async_safe=self.async_safe,
             mask_secrets=self.mask_secrets,
+            compress_backups=self.compress_backups,
+            pretty_exceptions=self.pretty_exceptions,
+            theme=self.theme_name,
             _existing_logger=self._logger,
             _bound_kwargs=new_kwargs,
             _listener=self._listener,
         )
 
     @contextmanager
-    def timer(self, name: str, level: str = "INFO") -> Any:
+    def timer(self, name: str, level: str = "INFO") -> Generator[None, None, None]:
         """Context manager to easily time blocks of code."""
         start = time.perf_counter()
         try:
             yield
         finally:
             elapsed = (time.perf_counter() - start) * 1000
-            self._log(level.lower(), f"{name} took {elapsed:.2f}ms")
+            self._log(level.lower(), f"{name}\n\n{elapsed:.2f} ms")
 
-    def trace(self, level: str = "DEBUG") -> Callable:
+    def trace(
+        self, func: Callable[..., Any] | None = None, level: str = "DEBUG"
+    ) -> Any:
         """Decorator to automatically log entry, exit, and execution time of a function."""
 
-        def decorator(func: Callable) -> Callable:
-            @wraps(func)
+        def decorator(f: Callable[..., Any]) -> Callable[..., Any]:
+            @wraps(f)
             def wrapper(*args: Any, **kwargs: Any) -> Any:
-                self._log(level.lower(), f"ENTER {func.__name__}()")
+                args_str = ", ".join(map(repr, args))
+                kwargs_str = ", ".join(f"{k}={v!r}" for k, v in kwargs.items())
+                all_args = ", ".join(filter(None, [args_str, kwargs_str]))
+
+                self._log(level.lower(), f"Entering {f.__name__}({all_args})")
                 start = time.perf_counter()
                 try:
-                    return func(*args, **kwargs)
+                    result = f(*args, **kwargs)
+                    return result
                 finally:
                     elapsed = (time.perf_counter() - start) * 1000
                     self._log(
-                        level.lower(), f"EXIT {func.__name__}() took {elapsed:.2f}ms"
+                        level.lower(), f"Exiting {f.__name__} (Time: {elapsed:.2f} ms)"
                     )
 
             return wrapper
 
-        return decorator
+        if func is None:
+            return decorator
+        return decorator(func)
+
+    def profile(
+        self, func: Callable[..., Any] | None = None, level: str = "INFO"
+    ) -> Any:
+        """Decorator to profile a function's execution using cProfile."""
+
+        def decorator(f: Callable[..., Any]) -> Callable[..., Any]:
+            @wraps(f)
+            def wrapper(*args: Any, **kwargs: Any) -> Any:
+                import cProfile
+                import pstats
+                import io
+
+                pr = cProfile.Profile()
+                pr.enable()
+                try:
+                    result = f(*args, **kwargs)
+                finally:
+                    pr.disable()
+                    s = io.StringIO()
+                    ps = pstats.Stats(pr, stream=s).sort_stats("cumulative")
+                    ps.print_stats(10)  # Top 10 lines
+                    self._log(
+                        level.lower(), f"Profile for {f.__name__}:\n{s.getvalue()}"
+                    )
+                return result
+
+            return wrapper
+
+        if func is None:
+            return decorator
+        return decorator(func)
+
+    def use(self, plugin_name: str) -> "FastLogger":
+        """Load and apply a plugin by name."""
+        from .plugins import load_plugin
+
+        load_plugin(self, plugin_name)
+        return self
 
     # Render features that use Rich if available -----------------------
 
@@ -465,36 +557,16 @@ class FastLogger:
     def diff(self, old: Any, new: Any, level: str = "INFO") -> None:
         """Logs a diff of two dictionaries or strings."""
         if RICH_AVAILABLE:
-            from rich.text import Text
-            import difflib
-            import pprint
-
-            old_str = pprint.pformat(old) if not isinstance(old, str) else old
-            new_str = pprint.pformat(new) if not isinstance(new, str) else new
-
-            differ = difflib.ndiff(old_str.splitlines(), new_str.splitlines())
-            text = Text()
-            for line in differ:
-                if line.startswith("- "):
-                    text.append(line + "\n", style="red")
-                elif line.startswith("+ "):
-                    text.append(line + "\n", style="green")
-                elif line.startswith("? "):
-                    text.append(line + "\n", style="yellow")
-                else:
-                    text.append(line + "\n")
+            from .formatters import format_diff
 
             console = Console(force_terminal=self.color_output)
             with console.capture() as capture:
-                console.print(text)
+                console.print(format_diff(old, new))
             self._log(level.lower(), "\n" + capture.get())
         else:
-            import pprint
+            from .formatters import format_diff
 
-            self._log(
-                level.lower(),
-                f"DIFF:\nOld: {pprint.pformat(old)}\nNew: {pprint.pformat(new)}",
-            )
+            self._log(level.lower(), f"\n{format_diff(old, new)}")
 
     def panel(self, text: str, title: str = "", level: str = "INFO") -> None:
         """Wraps text in a stylish panel (uses Rich if available)."""
@@ -549,17 +621,16 @@ class FastLogger:
     def inspect(self, obj: Any, level: str = "INFO") -> None:
         """Inspects an object structure."""
         if RICH_AVAILABLE:
-            from rich import inspect as rich_inspect
+            from .formatters import format_inspect
 
             console = Console(force_terminal=self.color_output)
             with console.capture() as capture:
-                rich_inspect(obj, console=console, methods=True)
+                console.print(format_inspect(obj))
             self._log(level.lower(), "\n" + capture.get())
         else:
-            self._log(
-                level.lower(),
-                f"INSPECT:\n{dir(obj)}\n{vars(obj) if hasattr(obj, '__dict__') else ''}",
-            )
+            from .formatters import format_inspect
+
+            self._log(level.lower(), f"\n{format_inspect(obj)}")
 
     @contextmanager
     def catch(
@@ -594,6 +665,10 @@ class FastLogger:
         self._log("debug", message, *args, **kwargs)
 
     def info(self, message: str, *args: Any, **kwargs: Any) -> None:
+        self._log("info", message, *args, **kwargs)
+
+    def success(self, message: str, *args: Any, **kwargs: Any) -> None:
+        # Success maps to info in stdlib logging, but could use a distinct format/icon
         self._log("info", message, *args, **kwargs)
 
     def warning(self, message: str, *args: Any, **kwargs: Any) -> None:
@@ -687,11 +762,17 @@ class FastLogger:
             result = func(*args, **kwargs)
             times.append(time.perf_counter() - start)
 
-        avg_time = sum(times) / iterations
-        fastest = min(times)
-        slowest = max(times)
+        avg_time = (sum(times) / iterations) * 1000
+        fastest = min(times) * 1000
+        slowest = max(times) * 1000
 
-        msg = f"Benchmark '{title}' ({iterations} runs): Avg: {avg_time:.4f}s | Fastest: {fastest:.4f}s | Slowest: {slowest:.4f}s"
+        msg = (
+            f"Benchmark '{title}'\n\n"
+            f"Min\n{fastest:.2f} ms\n\n"
+            f"Max\n{slowest:.2f} ms\n\n"
+            f"Average\n{avg_time:.2f} ms\n\n"
+            f"Calls\n{iterations}"
+        )
         self._log("info", msg)
         return result
 
@@ -805,6 +886,31 @@ class FastLogger:
         finally:
             elapsed = time.perf_counter() - start
             self._log("info", f"Timeline [{title}] END ({elapsed:.3f}s)")
+
+    def record(self, capacity: int = 1000) -> "FastLogger":
+        """Start recording logs into memory for later saving."""
+        if not hasattr(self, "_memory_handler"):
+            from logging.handlers import MemoryHandler
+
+            self._memory_handler = MemoryHandler(
+                capacity, flushLevel=logging.CRITICAL + 10, target=None
+            )
+            self._memory_handler.setFormatter(JsonFormatter())
+            self._memory_handler.setLevel(logging.DEBUG)
+            if self._logger:
+                self._logger.addHandler(self._memory_handler)
+        self.info(f"Session recording started (capacity={capacity} logs)")
+        return self
+
+    def save(self, filepath: str = "bug.fl") -> None:
+        """Save recorded logs to a file."""
+        if hasattr(self, "_memory_handler"):
+            with open(filepath, "w", encoding="utf-8") as f:
+                for record in self._memory_handler.buffer:
+                    f.write(self._memory_handler.format(record) + "\n")
+            self.info(f"Session saved to {filepath}")
+        else:
+            self.warning("No session recording active. Call logger.record() first.")
 
     def __enter__(self) -> "FastLogger":
         return self

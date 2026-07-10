@@ -43,6 +43,9 @@ dev = [
     "mypy>=0.800",
 ]
 
+[project.scripts]
+fastlogger = "fast_logger.cli:main"
+
 [project.urls]
 Homepage = "https://github.com/RaviMishra-94/fast-logger"
 Documentation = "https://github.com/RaviMishra-94/fast-logger/blob/main/README.md"
