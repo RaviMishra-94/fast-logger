@@ -3,10 +3,16 @@ import io
 import time
 from fast_logger import FastLogger
 
+
 class TestTier3Final(unittest.TestCase):
     def setUp(self) -> None:
         self.stream = io.StringIO()
-        self.logger = FastLogger("test_tier3_final", console_output=True, color_output=False, json_format=False)
+        self.logger = FastLogger(
+            "test_tier3_final",
+            console_output=True,
+            color_output=False,
+            json_format=False,
+        )
         for h in self.logger._logger.handlers:
             if hasattr(h, "stream"):
                 h.stream = self.stream
@@ -36,6 +42,7 @@ class TestTier3Final(unittest.TestCase):
         # Verify it yields safely without OpenTelemetry
         with self.logger.span("test_span") as span:
             self.assertIsNone(span)
+
 
 if __name__ == "__main__":
     unittest.main()

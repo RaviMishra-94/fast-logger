@@ -3,21 +3,29 @@ import unittest
 from io import StringIO
 from fast_logger.core import FastLogger
 
+
 class DummyResponse:
     def __init__(self, status_code, text, method="GET", url="http://example.com"):
         self.status_code = status_code
         self.text = text
         self.headers = {"Content-Type": "application/json"}
-        
+
         class DummyRequest:
             def __init__(self, method):
                 self.method = method
+
         self.request = DummyRequest(method)
         self.url = url
 
+
 class TestTier2Formatters(unittest.TestCase):
     def setUp(self) -> None:
-        self.logger = FastLogger("test_formatters", level=logging.DEBUG, console_output=False, async_safe=False)
+        self.logger = FastLogger(
+            "test_formatters",
+            level=logging.DEBUG,
+            console_output=False,
+            async_safe=False,
+        )
         self.stream = StringIO()
         handler = logging.StreamHandler(self.stream)
         handler.setFormatter(logging.Formatter("%(message)s"))
@@ -49,6 +57,7 @@ class TestTier2Formatters(unittest.TestCase):
     def test_inspect(self) -> None:
         class User:
             name = "Alice"
+
         self.logger.inspect(User())
         output = self.stream.getvalue()
         self.assertIn("Alice", output)
@@ -59,9 +68,10 @@ class TestTier2Formatters(unittest.TestCase):
                 raise ValueError("Oops!")
         except ValueError:
             self.fail("Context manager should not reraise if reraise=False")
-        
+
         output = self.stream.getvalue()
         self.assertIn("Oops", output)
+
 
 if __name__ == "__main__":
     unittest.main()

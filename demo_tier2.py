@@ -1,18 +1,19 @@
 import time
 from fast_logger import FastLogger
 
+
 def main():
     # 1. Initialize Logger with Tier 1 and Tier 2 features
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("🚀 FAST LOGGER TIER 1 & 2 DEMO 🚀")
-    print("="*50 + "\n")
+    print("=" * 50 + "\n")
 
     logger = FastLogger(
         name="demo_logger",
         level="DEBUG",
-        color_output=True,   # Beautiful terminal output
-        json_format=False,   # Set to True to see structured JSON logs instead
-        async_safe=True      # Uses non-blocking QueueHandler
+        color_output=True,  # Beautiful terminal output
+        json_format=False,  # Set to True to see structured JSON logs instead
+        async_safe=True,  # Uses non-blocking QueueHandler
     )
 
     # Basic logging with icons and colors
@@ -26,7 +27,7 @@ def main():
     logger.critical("System shutdown imminent!")
 
     print("\n--- Context Logger (bind) ---")
-    
+
     # 2. Context binding
     ctx_logger = logger.bind(request_id="REQ-8472", user="Alice")
     ctx_logger.info("Processing checkout payment")
@@ -62,15 +63,16 @@ def main():
     users = [
         {"ID": 1, "Name": "Alice", "Role": "Admin", "Status": "Active"},
         {"ID": 2, "Name": "Bob", "Role": "Editor", "Status": "Inactive"},
-        {"ID": 3, "Name": "Charlie", "Role": "Viewer", "Status": "Active"}
+        {"ID": 3, "Name": "Charlie", "Role": "Viewer", "Status": "Active"},
     ]
     logger.table(users, title="System Users")
 
     # Allow async queue listener to finish processing
     time.sleep(0.1)
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("Demo complete! Check out 'logs/demo_logger.log' to see the file output.")
-    print("="*50 + "\n")
+    print("=" * 50 + "\n")
+
 
 if __name__ == "__main__":
     main()

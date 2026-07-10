@@ -6,6 +6,7 @@ import json
 from fast_logger.core import FastLogger
 from fast_logger.masking import mask_secrets_in_string, mask_dict
 
+
 class TestTier3Features(unittest.TestCase):
     def test_mask_secrets_in_string(self) -> None:
         text = "Here is my AWS key: AKIAIOSFODNN7EXAMPLE and secret: aws_secret_access_key='wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY'"
@@ -21,8 +22,8 @@ class TestTier3Features(unittest.TestCase):
             "metadata": {
                 "token": "1234567890",
                 "apikey": "abcdef",
-                "public_info": "hello"
-            }
+                "public_info": "hello",
+            },
         }
         masked = mask_dict(data)
         self.assertEqual(masked["user"], "Alice")
@@ -32,7 +33,13 @@ class TestTier3Features(unittest.TestCase):
         self.assertEqual(masked["metadata"]["public_info"], "hello")
 
     def test_logger_masking(self) -> None:
-        logger = FastLogger("test_masking", level=logging.DEBUG, mask_secrets=True, console_output=False, async_safe=False)
+        logger = FastLogger(
+            "test_masking",
+            level=logging.DEBUG,
+            mask_secrets=True,
+            console_output=False,
+            async_safe=False,
+        )
         stream = StringIO()
         handler = logging.StreamHandler(stream)
         handler.setFormatter(logging.Formatter("%(message)s"))
@@ -45,7 +52,9 @@ class TestTier3Features(unittest.TestCase):
 
     def test_watch_and_sysinfo(self) -> None:
         # Just ensure they run without error and format correctly
-        logger = FastLogger("test_watch", level=logging.DEBUG, console_output=False, async_safe=False)
+        logger = FastLogger(
+            "test_watch", level=logging.DEBUG, console_output=False, async_safe=False
+        )
         stream = StringIO()
         handler = logging.StreamHandler(stream)
         handler.setFormatter(logging.Formatter("%(message)s"))
@@ -60,6 +69,7 @@ class TestTier3Features(unittest.TestCase):
         self.assertIn("my_var", output)
         self.assertIn("System Info", output)
         self.assertIn("Test Panel", output)
+
 
 if __name__ == "__main__":
     unittest.main()

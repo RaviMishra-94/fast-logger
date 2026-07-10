@@ -279,17 +279,18 @@ class FastLogger:
             backupCount=self.backup_count,
             encoding="utf-8",
         )
-        
+
         if self.compress_backups:
+
             def _gzip_rotator(source: str, dest: str) -> None:
-                with open(source, 'rb') as f_in:
-                    with gzip.open(dest, 'wb') as f_out:
+                with open(source, "rb") as f_in:
+                    with gzip.open(dest, "wb") as f_out:
                         f_out.writelines(f_in)
                 os.remove(source)
 
             def _gzip_namer(default_name: str) -> str:
                 return default_name + ".gz"
-                
+
             file_handler.rotator = _gzip_rotator
             file_handler.namer = _gzip_namer
 
@@ -549,15 +550,21 @@ class FastLogger:
         """Inspects an object structure."""
         if RICH_AVAILABLE:
             from rich import inspect as rich_inspect
+
             console = Console(force_terminal=self.color_output)
             with console.capture() as capture:
                 rich_inspect(obj, console=console, methods=True)
             self._log(level.lower(), "\n" + capture.get())
         else:
-            self._log(level.lower(), f"INSPECT:\n{dir(obj)}\n{vars(obj) if hasattr(obj, '__dict__') else ''}")
+            self._log(
+                level.lower(),
+                f"INSPECT:\n{dir(obj)}\n{vars(obj) if hasattr(obj, '__dict__') else ''}",
+            )
 
     @contextmanager
-    def catch(self, message: str = "An error occurred", reraise: bool = True) -> Generator[None, None, None]:
+    def catch(
+        self, message: str = "An error occurred", reraise: bool = True
+    ) -> Generator[None, None, None]:
         """
         Context manager to catch exceptions and log them beautifully.
         If rich is available, prints a rich traceback.
@@ -567,9 +574,14 @@ class FastLogger:
         except Exception as e:
             if RICH_AVAILABLE:
                 from rich.traceback import Traceback
+
                 console = Console(force_terminal=self.color_output)
                 with console.capture() as capture:
-                    console.print(Traceback.from_exception(type(e), e, e.__traceback__, show_locals=True))
+                    console.print(
+                        Traceback.from_exception(
+                            type(e), e, e.__traceback__, show_locals=True
+                        )
+                    )
                 self._log("error", f"{message}\n{capture.get()}")
             else:
                 self.exception(message)
@@ -602,19 +614,28 @@ class FastLogger:
         """Provides a progress bar context manager using rich.progress."""
         if RICH_AVAILABLE:
             from rich.progress import Progress
+
             with Progress(*args, **kwargs) as p:
                 yield p
         else:
+
             class DummyProgress:
-                def add_task(self, *a: Any, **k: Any) -> int: return 1
-                def update(self, *a: Any, **k: Any) -> None: pass
-                def advance(self, *a: Any, **k: Any) -> None: pass
+                def add_task(self, *a: Any, **k: Any) -> int:
+                    return 1
+
+                def update(self, *a: Any, **k: Any) -> None:
+                    pass
+
+                def advance(self, *a: Any, **k: Any) -> None:
+                    pass
+
             yield DummyProgress()
 
     def tree(self, title: str, data: Union[dict[str, Any], list[Any], Any]) -> None:
         """Logs a hierarchical tree."""
         if RICH_AVAILABLE:
             from rich.tree import Tree
+
             def build_tree(t: Tree, obj: Any) -> None:
                 if isinstance(obj, dict):
                     for k, v in obj.items():
@@ -626,7 +647,7 @@ class FastLogger:
                         build_tree(branch, item)
                 else:
                     t.add(str(obj))
-                    
+
             t = Tree(f"[bold red]{title}[/bold red]")
             build_tree(t, data)
             console = Console(force_terminal=self.color_output)
@@ -640,6 +661,7 @@ class FastLogger:
         """Renders and logs a markdown string."""
         if RICH_AVAILABLE:
             from rich.markdown import Markdown
+
             console = Console(force_terminal=self.color_output)
             with console.capture() as capture:
                 console.print(Markdown(markup))
@@ -647,7 +669,14 @@ class FastLogger:
         else:
             self._log("info", f"\n{markup}")
 
-    def benchmark(self, title: str, func: Callable[..., Any], iterations: int = 100, *args: Any, **kwargs: Any) -> Any:
+    def benchmark(
+        self,
+        title: str,
+        func: Callable[..., Any],
+        iterations: int = 100,
+        *args: Any,
+        **kwargs: Any,
+    ) -> Any:
         """Executes a function multiple times and logs the performance metrics."""
         if iterations < 1:
             iterations = 1
@@ -657,11 +686,11 @@ class FastLogger:
             start = time.perf_counter()
             result = func(*args, **kwargs)
             times.append(time.perf_counter() - start)
-            
+
         avg_time = sum(times) / iterations
         fastest = min(times)
         slowest = max(times)
-        
+
         msg = f"Benchmark '{title}' ({iterations} runs): Avg: {avg_time:.4f}s | Fastest: {fastest:.4f}s | Slowest: {slowest:.4f}s"
         self._log("info", msg)
         return result
@@ -672,7 +701,7 @@ class FastLogger:
         url = request.get("url", "")
         headers = request.get("headers", {})
         body = request.get("body", "")
-        
+
         curl_parts = [f"curl -X {method}"]
         for k, v in headers.items():
             curl_parts.append(f"-H '{k}: {v}'")
@@ -685,11 +714,12 @@ class FastLogger:
             body_str = body_str.replace("'", "'\\''")
             curl_parts.append(f"-d '{body_str}'")
         curl_parts.append(f"'{url}'")
-        
+
         curl_cmd = " \\\n  ".join(curl_parts)
-        
+
         if RICH_AVAILABLE:
             from rich.syntax import Syntax
+
             console = Console(force_terminal=self.color_output)
             with console.capture() as capture:
                 console.print(Syntax(curl_cmd, "bash", theme="monokai", word_wrap=True))
@@ -701,13 +731,17 @@ class FastLogger:
         """Takes a screenshot of the desktop and logs the save path."""
         try:
             from PIL import ImageGrab
+
             img = ImageGrab.grab()
             log_dir = self._get_log_directory()
             path = log_dir / filename
             img.save(path)
             self._log("info", f"Screenshot successfully captured and saved to {path}")
         except ImportError:
-            self._log("error", "Pillow is required for screenshot logging (pip install Pillow)")
+            self._log(
+                "error",
+                "Pillow is required for screenshot logging (pip install Pillow)",
+            )
         except Exception as e:
             self._log("error", f"Failed to capture screenshot: {e}")
 
@@ -715,27 +749,36 @@ class FastLogger:
         """Monkey-patches the requests library to automatically log all outgoing HTTP calls."""
         try:
             import requests
+
             if hasattr(requests.Session, "_fast_logger_patched"):
                 return
-                
+
             original_request = requests.Session.request
-            
+
             def new_request(sess: Any, method: str, url: str, **kwargs: Any) -> Any:
                 start = time.perf_counter()
                 self._log("info", f"Network Request START: {method} {url}")
                 try:
                     resp = original_request(sess, method, url, **kwargs)
                     elapsed = time.perf_counter() - start
-                    self._log("info", f"Network Request SUCCESS: {method} {url} [{resp.status_code}] ({elapsed:.3f}s)")
+                    self._log(
+                        "info",
+                        f"Network Request SUCCESS: {method} {url} [{resp.status_code}] ({elapsed:.3f}s)",
+                    )
                     return resp
                 except Exception as e:
                     elapsed = time.perf_counter() - start
-                    self._log("error", f"Network Request FAILED: {method} {url} - {str(e)} ({elapsed:.3f}s)")
+                    self._log(
+                        "error",
+                        f"Network Request FAILED: {method} {url} - {str(e)} ({elapsed:.3f}s)",
+                    )
                     raise
-                    
-            requests.Session.request = new_request # type: ignore
+
+            requests.Session.request = new_request  # type: ignore
             setattr(requests.Session, "_fast_logger_patched", True)
-            self._log("info", "Requests library successfully patched for network logging.")
+            self._log(
+                "info", "Requests library successfully patched for network logging."
+            )
         except ImportError:
             self._log("error", "The 'requests' library is not installed.")
 
@@ -744,6 +787,7 @@ class FastLogger:
         """Context manager for distributed OpenTelemetry tracing."""
         try:
             from opentelemetry import trace as otel_trace  # type: ignore
+
             tracer = otel_trace.get_tracer(self.name)
             with tracer.start_as_current_span(span_name) as span_obj:
                 yield span_obj

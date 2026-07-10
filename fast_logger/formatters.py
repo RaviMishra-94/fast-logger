@@ -5,6 +5,7 @@ try:
     from rich.json import JSON
     from rich.syntax import Syntax
     from rich.console import Console
+
     RICH_AVAILABLE = True
 except ImportError:
     RICH_AVAILABLE = False
@@ -40,26 +41,32 @@ def format_http(req_resp: Any) -> Any:
     """
     # Check if it's a httpx or requests Response
     if hasattr(req_resp, "status_code") and hasattr(req_resp, "text"):
-        method = getattr(req_resp.request, "method", "GET") if hasattr(req_resp, "request") else "UNKNOWN"
+        method = (
+            getattr(req_resp.request, "method", "GET")
+            if hasattr(req_resp, "request")
+            else "UNKNOWN"
+        )
         url = getattr(req_resp, "url", "UNKNOWN")
         status = req_resp.status_code
-        
+
         headers = dict(getattr(req_resp, "headers", {}))
-        
+
         header_str = "\n".join(f"{k}: {v}" for k, v in headers.items())
-        
+
         formatted = f"HTTP {status} | {method} {url}\n\nHeaders:\n{header_str}\n\nBody:\n{req_resp.text}"
-        
+
         if RICH_AVAILABLE:
             from rich.panel import Panel
+
             return Panel(formatted, title="HTTP Response", expand=False)
         return formatted
-    
+
     # If it's a dict holding request data
     if isinstance(req_resp, dict):
         if RICH_AVAILABLE:
             from rich.panel import Panel
+
             return Panel(format_json(req_resp), title="HTTP Payload", expand=False)
         return format_json(req_resp)
-        
+
     return str(req_resp)

@@ -27,8 +27,9 @@ try:
                 response = await call_next(request)
                 if not isinstance(response, Response):
                     from typing import cast
+
                     response = cast(Response, response)
-                
+
                 # Inject correlation ID back into response headers
                 response.headers["X-Request-ID"] = req_id
                 return response
