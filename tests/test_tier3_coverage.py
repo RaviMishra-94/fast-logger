@@ -59,7 +59,9 @@ class TestTier3Coverage(unittest.TestCase):
     @patch("rich.console.Console.print")
     @patch("time.sleep")
     @patch("builtins.print")
-    def test_replay(self, mock_print: Any, mock_sleep: Any, mock_rich_print: Any) -> None:
+    def test_replay(
+        self, mock_print: Any, mock_sleep: Any, mock_rich_print: Any
+    ) -> None:
         # Replay the logs, mocking print and sleep to speed it up and not spam console
         replay_logs(self.log_file, speed_multiplier=100.0)
         self.assertTrue(mock_print.called or mock_rich_print.called)

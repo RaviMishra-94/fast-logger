@@ -23,7 +23,7 @@ def generate_gantt(log_path: str) -> None:
     if not path.exists():
         print(f"Error: Log file {path} not found.")
         return
-        
+
     if Console is None:
         print("Rich is required for the timeline visualization (pip install rich)")
         return
@@ -99,23 +99,23 @@ def generate_gantt(log_path: str) -> None:
         ev_title = str(ev["title"])
         ev_start = float(str(ev["start"]))
         ev_end = float(str(ev["end"]))
-        
+
         start_offset = ev_start - min_ts
         duration = ev_end - ev_start
-        
+
         # Calculate percentage representation for the bar chart
         start_pct = start_offset / total_duration
         width_pct = duration / total_duration
-        
+
         # Create a visual bar using spaces and blocks
         total_chars = 40
         empty_prefix = int(start_pct * total_chars)
         bar_chars = max(1, int(width_pct * total_chars))
-        
+
         bar_text = Text()
         bar_text.append(" " * empty_prefix)
         bar_text.append("█" * bar_chars, style="blue")
-        
+
         table.add_row(ev_title, f"{duration:.3f}", bar_text)
 
     console.print(table)

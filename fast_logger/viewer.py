@@ -12,10 +12,14 @@ try:
     from textual.app import App, ComposeResult  # type: ignore
     from textual.widgets import Header, Footer, DataTable  # type: ignore
     from textual.containers import Container  # type: ignore
+
     TEXTUAL_AVAILABLE = True
 except ImportError:
     TEXTUAL_AVAILABLE = False
-    class App: pass  # type: ignore
+
+    class App:
+        pass  # type: ignore
+
     ComposeResult = Any  # type: ignore
 
 
@@ -76,7 +80,7 @@ def main() -> None:
     if not TEXTUAL_AVAILABLE:
         print("Textual is required for the log viewer (pip install textual)")
         sys.exit(1)
-        
+
     if len(sys.argv) < 2:
         print("Usage: python -m fast_logger.viewer <path_to_json_log>")
         sys.exit(1)

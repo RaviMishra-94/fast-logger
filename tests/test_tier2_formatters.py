@@ -5,7 +5,13 @@ from fast_logger.core import FastLogger
 
 
 class DummyResponse:
-    def __init__(self, status_code: int, text: str, method: str = "GET", url: str = "http://example.com") -> None:
+    def __init__(
+        self,
+        status_code: int,
+        text: str,
+        method: str = "GET",
+        url: str = "http://example.com",
+    ) -> None:
         self.status_code = status_code
         self.text = text
         self.headers = {"Content-Type": "application/json"}
