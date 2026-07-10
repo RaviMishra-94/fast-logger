@@ -26,11 +26,11 @@ _RESET = "\033[0m"
 _BOLD = "\033[1m"
 
 _LEVEL_COLORS: dict[int, str] = {
-    logging.DEBUG: "\033[36m",       # Cyan
-    logging.INFO: "\033[32m",        # Green
-    logging.WARNING: "\033[33m",     # Yellow
-    logging.ERROR: "\033[31m",       # Red
-    logging.CRITICAL: "\033[35m",    # Magenta
+    logging.DEBUG: "\033[36m",  # Cyan
+    logging.INFO: "\033[32m",  # Green
+    logging.WARNING: "\033[33m",  # Yellow
+    logging.ERROR: "\033[31m",  # Red
+    logging.CRITICAL: "\033[35m",  # Magenta
 }
 
 
@@ -50,12 +50,15 @@ class ColorFormatter(logging.Formatter):
 # JSON formatter
 # ---------------------------------------------------------------------------
 
+
 class JsonFormatter(logging.Formatter):
     """Emits each log record as a single-line JSON object."""
 
     def format(self, record: logging.LogRecord) -> str:
         payload: dict[str, Any] = {
-            "timestamp": datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat(),
+            "timestamp": datetime.fromtimestamp(
+                record.created, tz=timezone.utc
+            ).isoformat(),
             "level": record.levelname,
             "logger": record.name,
             "module": record.module,
@@ -73,14 +76,31 @@ class JsonFormatter(logging.Formatter):
         # Merge any extra fields the caller passed in
         for key, value in record.__dict__.items():
             if key not in {
-                "name", "msg", "args", "levelname", "levelno", "pathname",
-                "filename", "module", "lineno", "funcName", "created",
-                "msecs", "relativeCreated", "thread", "threadName",
-                "processName", "process", "exc_info", "exc_text",
-                "stack_info", "message", "taskName",
+                "name",
+                "msg",
+                "args",
+                "levelname",
+                "levelno",
+                "pathname",
+                "filename",
+                "module",
+                "lineno",
+                "funcName",
+                "created",
+                "msecs",
+                "relativeCreated",
+                "thread",
+                "threadName",
+                "processName",
+                "process",
+                "exc_info",
+                "exc_text",
+                "stack_info",
+                "message",
+                "taskName",
             }:
                 try:
-                    json.dumps(value)   # only include JSON-serialisable extras
+                    json.dumps(value)  # only include JSON-serialisable extras
                     payload[key] = value
                 except (TypeError, ValueError):
                     payload[key] = str(value)
@@ -91,6 +111,7 @@ class JsonFormatter(logging.Formatter):
 # ---------------------------------------------------------------------------
 # Main FastLogger class
 # ---------------------------------------------------------------------------
+
 
 class FastLogger:
     """
@@ -257,7 +278,10 @@ class FastLogger:
         Gracefully shut down the async listener (only needed when
         ``async_safe=True``).  Safe to call multiple times.
         """
-        if self._listener is not None and getattr(self._listener, "_thread", None) is not None:
+        if (
+            self._listener is not None
+            and getattr(self._listener, "_thread", None) is not None
+        ):
             self._listener.stop()
             self._listener = None
 
@@ -299,6 +323,7 @@ class FastLogger:
 # ---------------------------------------------------------------------------
 # Module-level convenience functions (unchanged public surface)
 # ---------------------------------------------------------------------------
+
 
 def setup_logger(name: str, **kwargs: Any) -> logging.Logger:
     """
