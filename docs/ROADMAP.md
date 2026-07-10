@@ -7,24 +7,24 @@
 ## Tier 1 (Expected features)
 
 * ✅ Beautiful colors
-* ⏳ Icons (✓ ⚠ ✗ 🚀 🔥)
+* ✅ Icons (✓ ⚠ ✗ 🚀 🔥)
 * ✅ Auto detect terminal color support
-* ⏳ Pretty tracebacks
+* ✅ Pretty tracebacks
 * ✅ File logging
 * ✅ Rotating logs
-* ⏳ Compression of old logs
+* ✅ Compression of old logs
 * ✅ Multiple log levels
 * ✅ Timestamps
 * ✅ Source filename + line number
-* ⏳ Function name
-* ⏳ Thread name
-* ⏳ Process ID
+* ✅ Function name
+* ✅ Thread name
+* ✅ Process ID
 * ✅ Async safe
-* ⏳ Rich formatting for dict/json
-* ⏳ Progress bars
+* ✅ Rich formatting for dict/json
+* ✅ Progress bars
 * ✅ Table printing
-* ⏳ Tree printing
-* ⏳ Markdown/code block logging
+* ✅ Tree printing
+* ✅ Markdown/code block logging
 
 ---
 
@@ -78,18 +78,18 @@ Beautiful exception formatting with suggestions.
 * ✅ AI-style panels
 * ✅ Variable watcher (`logger.watch(price)`)
 * ✅ Change detector (`logger.diff(old, new)`)
-* ⏳ Memory/CPU/GPU logger
-* ⏳ Benchmark helper
-* ⏳ Request timeline
-* ⏳ Live dashboard
-* ⏳ Log replay
+* ✅ Memory/CPU/GPU logger
+* ✅ Benchmark helper
+* ❌ Request timeline (Out of scope)
+* ❌ Live dashboard (Out of scope)
+* ❌ Log replay (Out of scope)
 * ✅ Automatic secret masking
-* ⏳ Screenshot logger (desktop)
+* ❌ Screenshot logger (desktop) (Out of scope)
 * ✅ Environment summary
-* ⏳ Network logger
-* ⏳ Docker/Kubernetes detection
-* ⏳ Automatic OpenTelemetry tracing
+* ❌ Network logger (Out of scope)
+* ✅ Docker/Kubernetes detection
+* ❌ Automatic OpenTelemetry tracing (Out of scope)
 * ✅ FastAPI middleware with request IDs
 * ✅ Automatic correlation IDs
-* ⏳ `logger.curl(request)`
-* ⏳ Built-in log viewer TUI
+* ✅ `logger.curl(request)`
+* ❌ Built-in log viewer TUI (Out of scope)

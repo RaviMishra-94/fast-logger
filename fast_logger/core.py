@@ -13,6 +13,8 @@ import logging.handlers
 import sys
 import threading
 import time
+import gzip
+import os
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from functools import wraps
@@ -175,6 +177,9 @@ class FastLogger:
         async_safe: bool = False,
         # --- new in 0.3.0 ---
         mask_secrets: bool = False,
+        # --- new in 0.4.0 / 0.5.0 ---
+        compress_backups: bool = False,
+        pretty_exceptions: bool = True,
         # Internal params for context binding
         _existing_logger: Optional[logging.Logger] = None,
         _bound_kwargs: Optional[dict[str, Any]] = None,
@@ -191,6 +196,11 @@ class FastLogger:
         self.json_format = json_format
         self.async_safe = async_safe
         self.mask_secrets = mask_secrets
+        self.compress_backups = compress_backups
+        self.pretty_exceptions = pretty_exceptions
+
+        if self.pretty_exceptions and RICH_AVAILABLE:
+            install_rich_traceback(show_locals=True)
 
         self._bound_kwargs = _bound_kwargs or {}
 
@@ -269,6 +279,20 @@ class FastLogger:
             backupCount=self.backup_count,
             encoding="utf-8",
         )
+        
+        if self.compress_backups:
+            def _gzip_rotator(source: str, dest: str) -> None:
+                with open(source, 'rb') as f_in:
+                    with gzip.open(dest, 'wb') as f_out:
+                        f_out.writelines(f_in)
+                os.remove(source)
+
+            def _gzip_namer(default_name: str) -> str:
+                return default_name + ".gz"
+                
+            file_handler.rotator = _gzip_rotator
+            file_handler.namer = _gzip_namer
+
         file_handler.setLevel(self.level)
         file_handler.setFormatter(self._make_formatter(color=False))
         real_handlers.append(file_handler)
@@ -573,6 +597,105 @@ class FastLogger:
         self._log("exception", message, *args, **kwargs)
 
     # Context manager support (useful for async_safe=True) ------------
+    @contextmanager
+    def progress(self, *args: Any, **kwargs: Any) -> Generator[Any, None, None]:
+        """Provides a progress bar context manager using rich.progress."""
+        if RICH_AVAILABLE:
+            from rich.progress import Progress
+            with Progress(*args, **kwargs) as p:
+                yield p
+        else:
+            class DummyProgress:
+                def add_task(self, *a: Any, **k: Any) -> int: return 1
+                def update(self, *a: Any, **k: Any) -> None: pass
+                def advance(self, *a: Any, **k: Any) -> None: pass
+            yield DummyProgress()
+
+    def tree(self, title: str, data: Union[dict[str, Any], list[Any], Any]) -> None:
+        """Logs a hierarchical tree."""
+        if RICH_AVAILABLE:
+            from rich.tree import Tree
+            def build_tree(t: Tree, obj: Any) -> None:
+                if isinstance(obj, dict):
+                    for k, v in obj.items():
+                        branch = t.add(f"[bold blue]{k}[/bold blue]")
+                        build_tree(branch, v)
+                elif isinstance(obj, list):
+                    for i, item in enumerate(obj):
+                        branch = t.add(f"[green][{i}][/green]")
+                        build_tree(branch, item)
+                else:
+                    t.add(str(obj))
+                    
+            t = Tree(f"[bold red]{title}[/bold red]")
+            build_tree(t, data)
+            console = Console(force_terminal=self.color_output)
+            with console.capture() as capture:
+                console.print(t)
+            self._log("info", f"\n{capture.get()}")
+        else:
+            self._log("info", f"{title}:\n{json.dumps(data, indent=2, default=str)}")
+
+    def markdown(self, markup: str) -> None:
+        """Renders and logs a markdown string."""
+        if RICH_AVAILABLE:
+            from rich.markdown import Markdown
+            console = Console(force_terminal=self.color_output)
+            with console.capture() as capture:
+                console.print(Markdown(markup))
+            self._log("info", f"\n{capture.get()}")
+        else:
+            self._log("info", f"\n{markup}")
+
+    def benchmark(self, title: str, func: Callable[..., Any], iterations: int = 100, *args: Any, **kwargs: Any) -> Any:
+        """Executes a function multiple times and logs the performance metrics."""
+        if iterations < 1:
+            iterations = 1
+        times = []
+        result = None
+        for _ in range(iterations):
+            start = time.perf_counter()
+            result = func(*args, **kwargs)
+            times.append(time.perf_counter() - start)
+            
+        avg_time = sum(times) / iterations
+        fastest = min(times)
+        slowest = max(times)
+        
+        msg = f"Benchmark '{title}' ({iterations} runs): Avg: {avg_time:.4f}s | Fastest: {fastest:.4f}s | Slowest: {slowest:.4f}s"
+        self._log("info", msg)
+        return result
+
+    def curl(self, request: dict[str, Any]) -> None:
+        """Logs an equivalent cURL command for an HTTP request dictionary."""
+        method = request.get("method", "GET").upper()
+        url = request.get("url", "")
+        headers = request.get("headers", {})
+        body = request.get("body", "")
+        
+        curl_parts = [f"curl -X {method}"]
+        for k, v in headers.items():
+            curl_parts.append(f"-H '{k}: {v}'")
+        if body:
+            if isinstance(body, dict):
+                body_str = json.dumps(body)
+            else:
+                body_str = str(body)
+            # escape single quotes for bash
+            body_str = body_str.replace("'", "'\\''")
+            curl_parts.append(f"-d '{body_str}'")
+        curl_parts.append(f"'{url}'")
+        
+        curl_cmd = " \\\n  ".join(curl_parts)
+        
+        if RICH_AVAILABLE:
+            from rich.syntax import Syntax
+            console = Console(force_terminal=self.color_output)
+            with console.capture() as capture:
+                console.print(Syntax(curl_cmd, "bash", theme="monokai", word_wrap=True))
+            self._log("info", f"cURL Command:\n{capture.get()}")
+        else:
+            self._log("info", f"cURL Command:\n{curl_cmd}")
 
     def __enter__(self) -> "FastLogger":
         return self
