@@ -96,6 +96,38 @@ users = [
 
 logger.table(users, title="Active Users")
 ```
+```
+
+### Secret Masking (Security)
+
+Automatically redact tokens, API keys, and passwords from logs:
+
+```python
+logger = get_logger("my_app", mask_secrets=True)
+logger.info("Connecting with password='super_secret_password'")
+# Output: Connecting with password='********'
+```
+
+### Variable Watcher & Change Detector
+
+Watch variables and log beautiful diffs (powered by `rich` when available):
+
+```python
+user_data = {"id": 1, "name": "Alice"}
+logger.watch("user_data", user_data)
+
+new_user_data = {"id": 1, "name": "Alice", "role": "admin"}
+logger.diff(user_data, new_user_data)
+```
+
+### System Telemetry & AI Panels
+
+Quickly dump environment context (OS, container status, memory via `psutil`) or render text inside stylish panels:
+
+```python
+logger.sysinfo()
+logger.panel("Detected an anomaly in user checkout flow.", title="AI Agent")
+```
 
 ## Advanced Configuration
 
@@ -110,7 +142,8 @@ logger = FastLogger(
     backup_count=5,
     console_output=True,
     json_format=True,   # Output structured JSON instead of text
-    async_safe=True     # Enable QueueHandler for non-blocking logging
+    async_safe=True,    # Enable QueueHandler for non-blocking logging
+    mask_secrets=True   # Redact passwords and API keys from logs
 )
 ```
 
@@ -128,7 +161,21 @@ logger = FastLogger(
 | `base_path` | str | Caller's directory | Base directory for logs |
 | `json_format` | bool | `False` | Log files in structured JSON format |
 | `color_output` | bool | `True` | ANSI colors / rich rendering in terminal |
-| `async_safe` | bool | `False` | Wrap handlers in QueueHandler (thread-safe, non-blocking) |
+| `async_safe` | bool | `False` | Wrap handlers in QueueHandler (thread-safe) |
+| `mask_secrets` | bool | `False` | Auto-mask API keys/passwords with asterisks |
+
+## Integrations
+
+### FastAPI Middleware
+Automatically inject a request-scoped Correlation ID (`X-Request-ID`) into every log:
+
+```python
+from fastapi import FastAPI
+from fast_logger.fastapi import FastAPILoggerMiddleware
+
+app = FastAPI()
+app.add_middleware(FastAPILoggerMiddleware)
+```
 
 ## Requirements
 

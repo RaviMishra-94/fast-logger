@@ -24,11 +24,22 @@ from typing import Any, Callable, Optional, Union
 try:
     from rich.console import Console
     from rich.traceback import install as install_rich_traceback
+    from rich.panel import Panel
     import rich.pretty
 
     RICH_AVAILABLE = True
 except ImportError:
     RICH_AVAILABLE = False
+
+from .masking import mask_secrets_in_string
+from .sysinfo import get_system_info
+
+try:
+    from .fastapi import request_id_ctx_var
+
+    HAS_CONTEXT_VAR = True
+except ImportError:
+    HAS_CONTEXT_VAR = False
 
 
 # ---------------------------------------------------------------------------
@@ -161,6 +172,8 @@ class FastLogger:
         color_output: bool = False,
         json_format: bool = False,
         async_safe: bool = False,
+        # --- new in 0.3.0 ---
+        mask_secrets: bool = False,
         # Internal params for context binding
         _existing_logger: Optional[logging.Logger] = None,
         _bound_kwargs: Optional[dict[str, Any]] = None,
@@ -176,6 +189,7 @@ class FastLogger:
         self.color_output = color_output and sys.stdout.isatty()
         self.json_format = json_format
         self.async_safe = async_safe
+        self.mask_secrets = mask_secrets
 
         self._bound_kwargs = _bound_kwargs or {}
 
@@ -288,16 +302,22 @@ class FastLogger:
         if self._bound_kwargs:
             extra.update(self._bound_kwargs)
 
+        if HAS_CONTEXT_VAR:
+            req_id = request_id_ctx_var.get("")
+            if req_id:
+                extra["correlation_id"] = req_id
+
         if extra:
             kwargs["extra"] = extra
 
             # If not using JSON format, we might want to append bound context
             # to the string output so the user sees it in the console.
-            if not self.json_format and self._bound_kwargs:
-                context_str = " | ".join(
-                    f"{k}={v}" for k, v in self._bound_kwargs.items()
-                )
+            if not self.json_format and extra:
+                context_str = " | ".join(f"{k}={v}" for k, v in extra.items())
                 message = f"{message} [{context_str}]"
+
+        if self.mask_secrets:
+            message = mask_secrets_in_string(message)
 
         getattr(self._logger, level_method)(message, *args, **kwargs)
 
@@ -339,6 +359,7 @@ class FastLogger:
             color_output=self.color_output,
             json_format=self.json_format,
             async_safe=self.async_safe,
+            mask_secrets=self.mask_secrets,
             _existing_logger=self._logger,
             _bound_kwargs=new_kwargs,
             _listener=self._listener,
@@ -396,6 +417,75 @@ class FastLogger:
             self._log(level.lower(), "\n" + capture.get())
         else:
             self._log(level.lower(), str(data))
+
+    def watch(self, var_name: str, var_value: Any, level: str = "DEBUG") -> None:
+        """Logs a variable name, type, and value cleanly."""
+        if RICH_AVAILABLE:
+            from rich.pretty import Pretty
+
+            console = Console(force_terminal=self.color_output)
+            with console.capture() as capture:
+                console.print(
+                    f"[bold cyan]{var_name}[/bold cyan] ({type(var_value).__name__}) =",
+                    Pretty(var_value),
+                )
+            self._log(level.lower(), "\n" + capture.get())
+        else:
+            self._log(
+                level.lower(),
+                f"WATCH: {var_name} ({type(var_value).__name__}) = {var_value!r}",
+            )
+
+    def diff(self, old: Any, new: Any, level: str = "INFO") -> None:
+        """Logs a diff of two dictionaries or strings."""
+        if RICH_AVAILABLE:
+            from rich.text import Text
+            import difflib
+            import pprint
+
+            old_str = pprint.pformat(old) if not isinstance(old, str) else old
+            new_str = pprint.pformat(new) if not isinstance(new, str) else new
+
+            differ = difflib.ndiff(old_str.splitlines(), new_str.splitlines())
+            text = Text()
+            for line in differ:
+                if line.startswith("- "):
+                    text.append(line + "\n", style="red")
+                elif line.startswith("+ "):
+                    text.append(line + "\n", style="green")
+                elif line.startswith("? "):
+                    text.append(line + "\n", style="yellow")
+                else:
+                    text.append(line + "\n")
+
+            console = Console(force_terminal=self.color_output)
+            with console.capture() as capture:
+                console.print(text)
+            self._log(level.lower(), "\n" + capture.get())
+        else:
+            import pprint
+
+            self._log(
+                level.lower(),
+                f"DIFF:\nOld: {pprint.pformat(old)}\nNew: {pprint.pformat(new)}",
+            )
+
+    def panel(self, text: str, title: str = "", level: str = "INFO") -> None:
+        """Wraps text in a stylish panel (uses Rich if available)."""
+        if RICH_AVAILABLE:
+            console = Console(force_terminal=self.color_output)
+            with console.capture() as capture:
+                console.print(Panel(text, title=title, border_style="cyan"))
+            self._log(level.lower(), "\n" + capture.get())
+        else:
+            border = "-" * 50
+            header = f"--- {title} ---" if title else border
+            self._log(level.lower(), f"\n{header}\n{text}\n{border}")
+
+    def sysinfo(self, level: str = "INFO") -> None:
+        """Logs system and environment information."""
+        info = get_system_info()
+        self._log(level.lower(), f"System Info: {json.dumps(info, indent=2)}")
 
     # Convenience log-level methods -----------------------------------
 
