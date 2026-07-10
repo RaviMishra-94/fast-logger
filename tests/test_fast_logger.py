@@ -5,7 +5,7 @@ import tempfile
 import time
 import unittest
 from pathlib import Path
-
+from typing import Any
 from fast_logger import (
     ColorFormatter,
     FastLogger,
@@ -35,27 +35,27 @@ def _flush(logger_obj: FastLogger) -> None:
 
 class TestFastLogger(unittest.TestCase):
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.temp_dir = tempfile.mkdtemp()
         self.test_name = "test_logger"
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def test_basic_logger_creation(self):
+    def test_basic_logger_creation(self) -> None:
         logger = FastLogger(name=self.test_name, base_path=self.temp_dir)
         self.assertIsNotNone(logger.get_logger())
         self.assertEqual(logger.name, self.test_name)
         self.assertEqual(logger.level, logging.INFO)
 
-    def test_log_file_creation(self):
+    def test_log_file_creation(self) -> None:
         logger = FastLogger(name=self.test_name, base_path=self.temp_dir)
         logger.info("Test message")
         _flush(logger)
         log_file = Path(self.temp_dir) / "logs" / f"{self.test_name}.log"
         self.assertTrue(log_file.exists())
 
-    def test_log_content(self):
+    def test_log_content(self) -> None:
         logger = FastLogger(
             name=self.test_name, base_path=self.temp_dir, console_output=False
         )
@@ -66,7 +66,7 @@ class TestFastLogger(unittest.TestCase):
         self.assertIn("Test log message", content)
         self.assertIn("INFO", content)
 
-    def test_different_log_levels(self):
+    def test_different_log_levels(self) -> None:
         logger = FastLogger(
             name=self.test_name,
             base_path=self.temp_dir,
@@ -83,7 +83,7 @@ class TestFastLogger(unittest.TestCase):
         for lvl in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
             self.assertIn(lvl, content)
 
-    def test_string_level_parsing(self):
+    def test_string_level_parsing(self) -> None:
         logger = FastLogger(name=self.test_name, base_path=self.temp_dir, level="DEBUG")
         self.assertEqual(logger.level, logging.DEBUG)
         logger2 = FastLogger(
@@ -91,7 +91,7 @@ class TestFastLogger(unittest.TestCase):
         )
         self.assertEqual(logger2.level, logging.WARNING)
 
-    def test_custom_log_folder(self):
+    def test_custom_log_folder(self) -> None:
         custom_folder = "custom_logs"
         logger = FastLogger(
             name=self.test_name, base_path=self.temp_dir, log_folder=custom_folder
@@ -101,29 +101,29 @@ class TestFastLogger(unittest.TestCase):
         log_file = Path(self.temp_dir) / custom_folder / f"{self.test_name}.log"
         self.assertTrue(log_file.exists())
 
-    def test_quick_logger_function(self):
+    def test_quick_logger_function(self) -> None:
         logger = quick_logger(self.test_name)
         self.assertIsInstance(logger, logging.Logger)
         self.assertEqual(logger.name, self.test_name)
 
-    def test_get_logger_function(self):
+    def test_get_logger_function(self) -> None:
         logger = get_logger(self.test_name, base_path=self.temp_dir)
         self.assertIsInstance(logger, FastLogger)
         self.assertEqual(logger.name, self.test_name)
 
-    def test_setup_logger_function(self):
+    def test_setup_logger_function(self) -> None:
         logger = setup_logger(self.test_name, base_path=self.temp_dir)
         self.assertIsInstance(logger, logging.Logger)
         self.assertEqual(logger.name, self.test_name)
 
-    def test_no_duplicate_handlers(self):
+    def test_no_duplicate_handlers(self) -> None:
         logger1 = FastLogger(name=self.test_name, base_path=self.temp_dir)
         count1 = len(logger1.get_logger().handlers)
         logger2 = FastLogger(name=self.test_name, base_path=self.temp_dir)
         count2 = len(logger2.get_logger().handlers)
         self.assertEqual(count1, count2)
 
-    def test_console_output_disabled(self):
+    def test_console_output_disabled(self) -> None:
         logger = FastLogger(
             name=self.test_name, base_path=self.temp_dir, console_output=False
         )
@@ -133,7 +133,7 @@ class TestFastLogger(unittest.TestCase):
             any(h.__class__.__name__ == "RotatingFileHandler" for h in handlers)
         )
 
-    def test_custom_format(self):
+    def test_custom_format(self) -> None:
         logger = FastLogger(
             name=self.test_name,
             base_path=self.temp_dir,
@@ -147,21 +147,21 @@ class TestFastLogger(unittest.TestCase):
         )
         self.assertTrue(content.startswith("INFO: Test message"))
 
-    def test_version_exported(self):
+    def test_version_exported(self) -> None:
         self.assertIsNotNone(__version__)
         self.assertRegex(__version__, r"^\d+\.\d+\.\d+$")
 
-    def test_propagate_false(self):
+    def test_propagate_false(self) -> None:
         logger = FastLogger(name=self.test_name, base_path=self.temp_dir)
         self.assertFalse(logger.get_logger().propagate)
 
-    def test_integer_level(self):
+    def test_integer_level(self) -> None:
         logger = FastLogger(
             name=self.test_name, base_path=self.temp_dir, level=logging.DEBUG
         )
         self.assertEqual(logger.level, logging.DEBUG)
 
-    def test_exception_logging(self):
+    def test_exception_logging(self) -> None:
         logger = FastLogger(
             name=self.test_name, base_path=self.temp_dir, console_output=False
         )
@@ -182,17 +182,17 @@ class TestFastLogger(unittest.TestCase):
 
 class TestColorOutput(unittest.TestCase):
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.temp_dir = tempfile.mkdtemp()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def test_color_formatter_exported(self):
+    def test_color_formatter_exported(self) -> None:
         """ColorFormatter must be importable from fast_logger."""
         self.assertTrue(issubclass(ColorFormatter, logging.Formatter))
 
-    def test_color_formatter_contains_ansi(self):
+    def test_color_formatter_contains_ansi(self) -> None:
         """ColorFormatter output should contain ANSI escape codes."""
         import io
 
@@ -209,7 +209,7 @@ class TestColorOutput(unittest.TestCase):
         output = formatter.format(record)
         self.assertIn("\033[", output, "Expected ANSI codes in ColorFormatter output")
 
-    def test_color_output_flag_stored(self):
+    def test_color_output_flag_stored(self) -> None:
         """color_output=True should be stored (may be downgraded to False if not a TTY)."""
         logger = FastLogger(
             name="color_test",
@@ -220,7 +220,7 @@ class TestColorOutput(unittest.TestCase):
         # The attribute exists; in non-TTY environments it degrades to False — that's correct.
         self.assertIsInstance(logger.color_output, bool)
 
-    def test_no_color_in_file_logs(self):
+    def test_no_color_in_file_logs(self) -> None:
         """Even with color_output=True, the FILE handler must write plain text."""
         logger = FastLogger(
             name="color_file_test",
@@ -242,16 +242,16 @@ class TestColorOutput(unittest.TestCase):
 
 class TestJsonFormat(unittest.TestCase):
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.temp_dir = tempfile.mkdtemp()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def test_json_formatter_exported(self):
+    def test_json_formatter_exported(self) -> None:
         self.assertTrue(issubclass(JsonFormatter, logging.Formatter))
 
-    def test_json_formatter_valid_json(self):
+    def test_json_formatter_valid_json(self) -> None:
         formatter = JsonFormatter()
         record = logging.LogRecord(
             name="test",
@@ -268,7 +268,7 @@ class TestJsonFormat(unittest.TestCase):
         self.assertIn("level", payload)
         self.assertIn("timestamp", payload)
 
-    def test_json_format_flag_writes_json_to_file(self):
+    def test_json_format_flag_writes_json_to_file(self) -> None:
         logger = FastLogger(
             name="json_test",
             base_path=self.temp_dir,
@@ -288,7 +288,7 @@ class TestJsonFormat(unittest.TestCase):
         self.assertEqual(payload["message"], "json warning")
         self.assertEqual(payload["level"], "WARNING")
 
-    def test_json_format_contains_expected_keys(self):
+    def test_json_format_contains_expected_keys(self) -> None:
         logger = FastLogger(
             name="json_keys_test",
             base_path=self.temp_dir,
@@ -302,7 +302,7 @@ class TestJsonFormat(unittest.TestCase):
         for key in ("timestamp", "level", "logger", "filename", "line", "message"):
             self.assertIn(key, payload, f"Missing key: {key}")
 
-    def test_json_format_exception_key(self):
+    def test_json_format_exception_key(self) -> None:
         logger = FastLogger(
             name="json_exc_test",
             base_path=self.temp_dir,
@@ -327,13 +327,13 @@ class TestJsonFormat(unittest.TestCase):
 
 class TestAsyncSafe(unittest.TestCase):
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.temp_dir = tempfile.mkdtemp()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def _make_async_logger(self, name: str, **kwargs) -> FastLogger:
+    def _make_async_logger(self, name: str, **kwargs: Any) -> FastLogger:
         return FastLogger(
             name=name,
             base_path=self.temp_dir,
@@ -342,7 +342,7 @@ class TestAsyncSafe(unittest.TestCase):
             **kwargs,
         )
 
-    def test_async_safe_creates_queue_handler(self):
+    def test_async_safe_creates_queue_handler(self) -> None:
         """In async_safe mode the logger should have a QueueHandler attached."""
         from logging.handlers import QueueHandler
 
@@ -354,7 +354,7 @@ class TestAsyncSafe(unittest.TestCase):
         )
         logger.stop()
 
-    def test_async_safe_writes_to_file(self):
+    def test_async_safe_writes_to_file(self) -> None:
         """Messages must eventually appear in the log file."""
         logger = self._make_async_logger("async_write")
         logger.info("async hello")
@@ -362,7 +362,7 @@ class TestAsyncSafe(unittest.TestCase):
         content = (Path(self.temp_dir) / "logs" / "async_write.log").read_text()
         self.assertIn("async hello", content)
 
-    def test_async_safe_all_levels(self):
+    def test_async_safe_all_levels(self) -> None:
         logger = self._make_async_logger("async_levels", level="DEBUG")
         logger.debug("d")
         logger.info("i")
@@ -374,7 +374,7 @@ class TestAsyncSafe(unittest.TestCase):
         for msg in ("d", "i", "w", "e", "c"):
             self.assertIn(msg, content)
 
-    def test_async_safe_context_manager(self):
+    def test_async_safe_context_manager(self) -> None:
         """FastLogger should work as a context manager for clean shutdown."""
         with FastLogger(
             name="async_ctx",
@@ -387,7 +387,7 @@ class TestAsyncSafe(unittest.TestCase):
         content = (Path(self.temp_dir) / "logs" / "async_ctx.log").read_text()
         self.assertIn("context manager works", content)
 
-    def test_async_safe_json_combo(self):
+    def test_async_safe_json_combo(self) -> None:
         """async_safe + json_format should produce valid JSON in the log file."""
         with FastLogger(
             name="async_json",
@@ -402,7 +402,7 @@ class TestAsyncSafe(unittest.TestCase):
         self.assertEqual(payload["message"], "async json error")
         self.assertEqual(payload["level"], "ERROR")
 
-    def test_stop_is_idempotent(self):
+    def test_stop_is_idempotent(self) -> None:
         """Calling stop() multiple times should not raise."""
         logger = self._make_async_logger("async_stop")
         logger.stop()

@@ -4,7 +4,12 @@ Fast Logger - A simple, no-fuss logging setup for Python applications.
 This package provides a quick and easy way to set up logging in Python applications
 with sensible defaults, rotating file handlers, and console output.
 
-New in 0.2.0:
+New in 0.3.0:
+  • Optional rich support         — pip install "python-fast-logger[rich]"
+  • Context bounding            — logger.bind(request_id="123")
+  • Execution timing            — with logger.timer("task")
+  • Function tracing            — @logger.trace()
+  • Table formatting            — logger.table(data)
   • Colored console output      — pass color_output=True to FastLogger
   • Structured JSON log format  — pass json_format=True to FastLogger
   • Async-safe logging          — pass async_safe=True to FastLogger
@@ -45,7 +50,7 @@ from .core import (
     setup_logger,
 )
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 __author__ = "Ravi Mishra"
 __email__ = "ravi@iscodesearch.com"
 

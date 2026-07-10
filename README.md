@@ -2,26 +2,37 @@
 
 ![Tests](https://github.com/RaviMishra-94/fast-logger/actions/workflows/python-app.yml/badge.svg)
 
-A simple, no-fuss logging setup for Python applications with sensible defaults.
+A professional-grade, no-fuss logging setup for Python applications with sensible defaults and developer productivity tools.
 
 ## Features
 
 - **Zero configuration**: Works out of the box with sensible defaults
+- **Rich Terminal Output**: Beautiful colors, traceback formatting, and table printing (optional)
+- **Developer Productivity**: Context binding (`bind`), execution timing (`timer`), and function tracing (`@trace`)
+- **JSON Formatting**: Built-in support for structured JSON logging
+- **Async-Safe**: Thread-safe and async-safe logging using `QueueHandler` and `QueueListener`
 - **Rotating file logs**: Automatically manages log file sizes and backups
 - **Console output**: Simultaneous logging to file and console
-- **Flexible configuration**: Easy to customize when needed
 - **Type hints**: Full type hint support for better IDE experience
-- **No dependencies**: Uses only Python standard library
+- **Zero dependencies** (by default): Uses only Python standard library unless extended
 
 ## Installation
 
+**Standard Installation (No dependencies):**
 ```bash
 pip install python-fast-logger
 ```
 
+**Developer Installation (with Beautiful Console Output):**
+```bash
+pip install "python-fast-logger[rich]"
+```
+
+*Note: The API remains exactly the same regardless of how you install it. If `rich` is installed, your terminal output will automatically look beautiful.*
+
 ## Quick Start
 
-### Super Simple Usage
+### Basic Usage
 
 ```python
 from fast_logger import quick_logger
@@ -31,60 +42,76 @@ logger.info("Hello, world!")
 logger.error("Something went wrong!")
 ```
 
-### Basic Usage
+## Developer Productivity (Tier 2 Features)
+
+### Context Logger (Binding Data)
+
+Inject contextual information into your logs persistently:
 
 ```python
 from fast_logger import get_logger
 
-logger = get_logger("my_app")
-logger.info("Application started")
-logger.warning("This is a warning")
-logger.error("This is an error")
+logger = get_logger("my_app", json_format=True)
+ctx_logger = logger.bind(request_id="req-123", user_id=42)
+
+ctx_logger.info("Processing payment")
+# JSON Output: {"message": "Processing payment", "request_id": "req-123", "user_id": 42, ...}
 ```
 
-### Advanced Usage
+### Benchmarking (Timer)
+
+Easily time blocks of code using the `timer` context manager:
+
+```python
+with logger.timer("Database query"):
+    # ... your database logic
+    pass
+
+# Output: [INFO] Database query took 142.30ms
+```
+
+### Function Tracing (Trace)
+
+Automatically log function entry, exit, and execution time using the `@trace` decorator:
+
+```python
+@logger.trace(level="DEBUG")
+def fetch_data(url: str):
+    return requests.get(url)
+
+# Output: 
+# [DEBUG] ENTER fetch_data()
+# [DEBUG] EXIT fetch_data() took 312.45ms
+```
+
+### Rich Tables
+
+Render beautiful terminal tables directly from your logger (requires `rich`):
+
+```python
+users = [
+    {"id": 1, "name": "Alice", "role": "Admin"},
+    {"id": 2, "name": "Bob", "role": "User"}
+]
+
+logger.table(users, title="Active Users")
+```
+
+## Advanced Configuration
 
 ```python
 from fast_logger import FastLogger
 
-# Custom configuration
 logger = FastLogger(
     name="my_advanced_app",
     level="DEBUG",
     log_folder="custom_logs",
     max_file_size_mb=100,
     backup_count=5,
-    console_output=True
+    console_output=True,
+    json_format=True,   # Output structured JSON instead of text
+    async_safe=True     # Enable QueueHandler for non-blocking logging
 )
-
-logger.info("Advanced logging setup complete")
-logger.debug("Debug information")
-```
-
-### Web Application Example
-
-```python
-from fast_logger import get_logger
-from flask import Flask
-
-app = Flask(__name__)
-logger = get_logger("web_app", level="INFO")
-
-@app.route("/")
-def home():
-    logger.info("Home page accessed")
-    return "Hello, World!"
-
-@app.route("/api/data")
-def get_data():
-    try:
-        # Your API logic here
-        data = {"status": "success"}
-        logger.info("Data retrieved successfully")
-        return data
-    except Exception as e:
-        logger.error(f"Error retrieving data: {e}")
-        return {"status": "error"}, 500
 ```
 
 ## Configuration Options
@@ -99,98 +126,15 @@ def get_data():
 | `console_output` | bool | `True` | Whether to output to console |
 | `log_format` | str | Default format | Custom log format string |
 | `base_path` | str | Caller's directory | Base directory for logs |
-
-## Default Log Format
-
-```
-2024-01-15 10:30:45,123 - my_app [main.py:15] - INFO - Hello, world!
-```
-
-## File Structure
-
-By default, logs are created in a `logs` folder relative to your script:
-
-```
-your_project/
-├── main.py
-└── logs/
-    ├── my_app.log
-    ├── my_app.log.1
-    └── my_app.log.2
-```
-
-## API Reference
-
-### FastLogger Class
-
-The main class for advanced usage with full configuration options.
-
-```python
-logger = FastLogger(
-    name="my_app",
-    level="INFO",
-    log_folder="logs",
-    max_file_size_mb=50,
-    backup_count=3,
-    console_output=True,
-    log_format=None,
-    base_path=None
-)
-```
-
-### Convenience Functions
-
-- `quick_logger(name, level="INFO")`: Minimal setup for immediate use
-- `get_logger(name, **kwargs)`: Returns FastLogger instance with fluent interface
-- `setup_logger(name, **kwargs)`: Returns standard logging.Logger instance
-
-## Why Fast Logger?
-
-Most Python applications need logging, but setting it up properly requires boilerplate code:
-
-- Creating formatters
-- Setting up file handlers
-- Configuring rotation
-- Adding console output
-- Managing log directories
-
-Fast Logger eliminates this boilerplate while providing sensible defaults that work for most applications.
-
-## Comparison with Standard Logging
-
-**Standard logging setup:**
-```python
-import logging
-import os
-from logging.handlers import RotatingFileHandler
-
-# 15+ lines of boilerplate code...
-logger = logging.getLogger("my_app")
-logger.setLevel(logging.INFO)
-# ... more setup code
-```
-
-**Fast Logger:**
-```python
-from fast_logger import quick_logger
-
-logger = quick_logger("my_app")
-# Done! 
-```
+| `json_format` | bool | `False` | Log files in structured JSON format |
+| `color_output` | bool | `True` | ANSI colors / rich rendering in terminal |
+| `async_safe` | bool | `False` | Wrap handlers in QueueHandler (thread-safe, non-blocking) |
 
 ## Requirements
 
 - Python 3.9+
-- No external dependencies
+- Optional: `rich` >= 14.0.0
 
 ## License
 
 MIT License. See LICENSE file for details.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for version history.

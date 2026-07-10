@@ -12,11 +12,24 @@ import logging
 import logging.handlers
 import sys
 import threading
+import time
+from contextlib import contextmanager
 from datetime import datetime, timezone
+from functools import wraps
 from logging.handlers import QueueHandler, QueueListener, RotatingFileHandler
 from pathlib import Path
 from queue import Queue
-from typing import Any, Optional, Union
+from typing import Any, Callable, Optional, Union
+
+try:
+    from rich.console import Console
+    from rich.traceback import install as install_rich_traceback
+    import rich.pretty
+
+    RICH_AVAILABLE = True
+except ImportError:
+    RICH_AVAILABLE = False
+
 
 # ---------------------------------------------------------------------------
 # ANSI color codes (no third-party deps)
@@ -33,14 +46,23 @@ _LEVEL_COLORS: dict[int, str] = {
     logging.CRITICAL: "\033[35m",  # Magenta
 }
 
+_LEVEL_ICONS: dict[int, str] = {
+    logging.DEBUG: "🚀",
+    logging.INFO: "✓",
+    logging.WARNING: "⚠",
+    logging.ERROR: "✗",
+    logging.CRITICAL: "🔥",
+}
+
 
 class ColorFormatter(logging.Formatter):
     """Formatter that wraps the level name (and optionally the whole line) in ANSI color."""
 
     def format(self, record: logging.LogRecord) -> str:
         color = _LEVEL_COLORS.get(record.levelno, "")
+        icon = _LEVEL_ICONS.get(record.levelno, "")
         record = logging.makeLogRecord(record.__dict__)  # shallow copy
-        record.levelname = f"{color}{_BOLD}{record.levelname}{_RESET}"
+        record.levelname = f"{color}{_BOLD}{icon} {record.levelname}{_RESET}"
         formatted = super().format(record)
         # Colorize the whole output line for visual impact
         return f"{color}{formatted}{_RESET}"
@@ -62,6 +84,9 @@ class JsonFormatter(logging.Formatter):
             "level": record.levelname,
             "logger": record.name,
             "module": record.module,
+            "funcName": record.funcName,
+            "threadName": record.threadName,
+            "process": record.process,
             "filename": record.filename,
             "line": record.lineno,
             "message": record.getMessage(),
@@ -136,29 +161,11 @@ class FastLogger:
         color_output: bool = False,
         json_format: bool = False,
         async_safe: bool = False,
+        # Internal params for context binding
+        _existing_logger: Optional[logging.Logger] = None,
+        _bound_kwargs: Optional[dict[str, Any]] = None,
+        _listener: Optional[QueueListener] = None,
     ):
-        """
-        Initialise FastLogger.
-
-        Args:
-            name:             Logger name (also used as the log filename).
-            level:            Logging level — string ("DEBUG") or int (logging.DEBUG).
-            log_folder:       Sub-directory for log files.
-            max_file_size_mb: Max size per log file before rotation.
-            backup_count:     Number of rotated backup files to keep.
-            log_format:       Custom ``logging.Formatter`` format string.
-                              Ignored when ``json_format=True``.
-            console_output:   Attach a StreamHandler to stdout.
-            base_path:        Root directory for log files.
-                              Defaults to the calling script's directory.
-            color_output:     Colorise console output using ANSI codes.
-                              Automatically disabled when stdout is not a TTY.
-            json_format:      Emit structured JSON records instead of plain text.
-                              Applies to both file and console handlers.
-            async_safe:       Route all log calls through a ``QueueHandler`` /
-                              ``QueueListener`` so that I/O never blocks the
-                              calling thread / async event loop.
-        """
         self.name = name
         self.level = self._parse_level(level)
         self.log_folder = log_folder
@@ -170,15 +177,29 @@ class FastLogger:
         self.json_format = json_format
         self.async_safe = async_safe
 
+        self._bound_kwargs = _bound_kwargs or {}
+
+        # The base logging string, including some extra diagnostic info
+        # (funcName, threadName, process) for debugging.
         self.log_format = log_format or (
-            "%(asctime)s - %(name)s [%(filename)s:%(lineno)d] - "
-            "%(levelname)s - %(message)s"
+            "%(asctime)s - %(name)s [%(filename)s:%(lineno)d] "
+            "[P:%(process)d T:%(threadName)s] - %(levelname)s - %(message)s"
         )
 
         self._logger: Optional[logging.Logger] = None
         self._queue: Optional[Queue[Any]] = None
-        self._listener: Optional[QueueListener] = None
-        self._setup_logger()
+        self._listener: Optional[QueueListener] = _listener
+
+        if _existing_logger:
+            self._logger = _existing_logger
+        else:
+            self._setup_logger()
+
+        # If Rich is available and we're writing to a TTY console in color mode,
+        # enable pretty printing and traceback handling globally.
+        if RICH_AVAILABLE and self.color_output and not _existing_logger:
+            install_rich_traceback(show_locals=False)
+            rich.pretty.install()
 
     # ------------------------------------------------------------------
     # Internal helpers
@@ -223,10 +244,8 @@ class FastLogger:
         self._logger.setLevel(self.level)
         self._logger.propagate = False
 
-        # Build the real I/O handlers
         real_handlers: list[logging.Handler] = []
 
-        # File handler
         log_dir = self._get_log_directory()
         log_file = log_dir / f"{self.name}.log"
         file_handler = RotatingFileHandler(
@@ -239,7 +258,6 @@ class FastLogger:
         file_handler.setFormatter(self._make_formatter(color=False))
         real_handlers.append(file_handler)
 
-        # Console handler
         if self.console_output:
             console_handler = logging.StreamHandler(sys.stdout)
             console_handler.setLevel(self.level)
@@ -247,8 +265,6 @@ class FastLogger:
             real_handlers.append(console_handler)
 
         if self.async_safe:
-            # Route all records through an in-process queue so the calling
-            # thread is never blocked by file/network I/O.
             self._queue = Queue(maxsize=-1)  # unbounded
             queue_handler = QueueHandler(self._queue)
             queue_handler.setLevel(self.level)
@@ -264,6 +280,27 @@ class FastLogger:
             for handler in real_handlers:
                 self._logger.addHandler(handler)
 
+    def _log(self, level_method: str, message: str, *args: Any, **kwargs: Any) -> None:
+        if not self._logger:
+            return
+
+        extra = kwargs.pop("extra", {})
+        if self._bound_kwargs:
+            extra.update(self._bound_kwargs)
+
+        if extra:
+            kwargs["extra"] = extra
+
+            # If not using JSON format, we might want to append bound context
+            # to the string output so the user sees it in the console.
+            if not self.json_format and self._bound_kwargs:
+                context_str = " | ".join(
+                    f"{k}={v}" for k, v in self._bound_kwargs.items()
+                )
+                message = f"{message} [{context_str}]"
+
+        getattr(self._logger, level_method)(message, *args, **kwargs)
+
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
@@ -275,8 +312,7 @@ class FastLogger:
 
     def stop(self) -> None:
         """
-        Gracefully shut down the async listener (only needed when
-        ``async_safe=True``).  Safe to call multiple times.
+        Gracefully shut down the async listener.
         """
         if (
             self._listener is not None
@@ -285,31 +321,90 @@ class FastLogger:
             self._listener.stop()
             self._listener = None
 
+    def bind(self, **kwargs: Any) -> "FastLogger":
+        """
+        Returns a new FastLogger instance that automatically injects the provided
+        kwargs into every log record (useful for request_id, user_id, etc).
+        """
+        new_kwargs = {**self._bound_kwargs, **kwargs}
+        return FastLogger(
+            name=self.name,
+            level=self.level,
+            log_folder=self.log_folder,
+            max_file_size_mb=self.max_file_size_mb,
+            backup_count=self.backup_count,
+            log_format=self.log_format,
+            console_output=self.console_output,
+            base_path=self.base_path,
+            color_output=self.color_output,
+            json_format=self.json_format,
+            async_safe=self.async_safe,
+            _existing_logger=self._logger,
+            _bound_kwargs=new_kwargs,
+            _listener=self._listener,
+        )
+
+    @contextmanager
+    def timer(self, name: str, level: str = "INFO") -> Any:
+        """Context manager to easily time blocks of code."""
+        start = time.perf_counter()
+        try:
+            yield
+        finally:
+            elapsed = (time.perf_counter() - start) * 1000
+            self._log(level.lower(), f"{name} took {elapsed:.2f}ms")
+
+    def trace(self, level: str = "DEBUG") -> Callable:
+        """Decorator to automatically log entry, exit, and execution time of a function."""
+
+        def decorator(func: Callable) -> Callable:
+            @wraps(func)
+            def wrapper(*args: Any, **kwargs: Any) -> Any:
+                self._log(level.lower(), f"ENTER {func.__name__}()")
+                start = time.perf_counter()
+                try:
+                    return func(*args, **kwargs)
+                finally:
+                    elapsed = (time.perf_counter() - start) * 1000
+                    self._log(
+                        level.lower(), f"EXIT {func.__name__}() took {elapsed:.2f}ms"
+                    )
+
+            return wrapper
+
+        return decorator
+
+    # Render features that use Rich if available -----------------------
+
+    def table(self, table_obj: Any, level: str = "INFO") -> None:
+        """Logs a table. Uses Rich formatting if installed, otherwise stringifies."""
+        if RICH_AVAILABLE:
+            console = Console(force_terminal=self.color_output)
+            with console.capture() as capture:
+                console.print(table_obj)
+            self._log(level.lower(), "\n" + capture.get())
+        else:
+            self._log(level.lower(), str(table_obj))
+
     # Convenience log-level methods -----------------------------------
 
     def debug(self, message: str, *args: Any, **kwargs: Any) -> None:
-        if self._logger:
-            self._logger.debug(message, *args, **kwargs)
+        self._log("debug", message, *args, **kwargs)
 
     def info(self, message: str, *args: Any, **kwargs: Any) -> None:
-        if self._logger:
-            self._logger.info(message, *args, **kwargs)
+        self._log("info", message, *args, **kwargs)
 
     def warning(self, message: str, *args: Any, **kwargs: Any) -> None:
-        if self._logger:
-            self._logger.warning(message, *args, **kwargs)
+        self._log("warning", message, *args, **kwargs)
 
     def error(self, message: str, *args: Any, **kwargs: Any) -> None:
-        if self._logger:
-            self._logger.error(message, *args, **kwargs)
+        self._log("error", message, *args, **kwargs)
 
     def critical(self, message: str, *args: Any, **kwargs: Any) -> None:
-        if self._logger:
-            self._logger.critical(message, *args, **kwargs)
+        self._log("critical", message, *args, **kwargs)
 
     def exception(self, message: str, *args: Any, **kwargs: Any) -> None:
-        if self._logger:
-            self._logger.exception(message, *args, **kwargs)
+        self._log("exception", message, *args, **kwargs)
 
     # Context manager support (useful for async_safe=True) ------------
 
