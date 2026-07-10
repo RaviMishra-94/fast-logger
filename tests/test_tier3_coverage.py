@@ -9,6 +9,13 @@ from fast_logger.viewer import LogViewer
 from fast_logger.replay import replay_logs
 from fast_logger.timeline import generate_gantt
 
+try:
+    import rich
+
+    RICH_AVAILABLE = True
+except ImportError:
+    RICH_AVAILABLE = False
+
 
 class TestTier3Coverage(unittest.TestCase):
     def setUp(self) -> None:
@@ -56,20 +63,27 @@ class TestTier3Coverage(unittest.TestCase):
         app = LogViewer(self.log_file)
         self.assertEqual(str(app.log_path), self.log_file)
 
-    @patch("rich.console.Console.print")
     @patch("time.sleep")
     @patch("builtins.print")
-    def test_replay(
-        self, mock_print: Any, mock_sleep: Any, mock_rich_print: Any
-    ) -> None:
+    def test_replay(self, mock_print: Any, mock_sleep: Any) -> None:
         # Replay the logs, mocking print and sleep to speed it up and not spam console
-        replay_logs(self.log_file, speed_multiplier=100.0)
-        self.assertTrue(mock_print.called or mock_rich_print.called)
+        if RICH_AVAILABLE:
+            with patch("rich.console.Console.print") as mock_rich_print:
+                replay_logs(self.log_file, speed_multiplier=100.0)
+                self.assertTrue(mock_print.called or mock_rich_print.called)
+        else:
+            replay_logs(self.log_file, speed_multiplier=100.0)
+            self.assertTrue(mock_print.called)
 
-    @patch("rich.console.Console.print")
+    @patch("builtins.print")
     def test_timeline_gantt(self, mock_print: Any) -> None:
-        generate_gantt(self.log_file)
-        self.assertTrue(mock_print.called)
+        if RICH_AVAILABLE:
+            with patch("rich.console.Console.print") as mock_rich_print:
+                generate_gantt(self.log_file)
+                self.assertTrue(mock_rich_print.called)
+        else:
+            generate_gantt(self.log_file)
+            self.assertTrue(mock_print.called)
 
 
 if __name__ == "__main__":
