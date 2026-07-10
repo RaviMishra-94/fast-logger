@@ -226,7 +226,7 @@ class FastLogger:
 
     @classmethod
     def from_config(
-        cls, name: str = "fast_logger", path: str | None = None
+        cls, name: str = "fast_logger", path: Optional[str] = None
     ) -> "FastLogger":
         """
         Instantiate FastLogger from configuration files.
@@ -446,7 +446,7 @@ class FastLogger:
             self._log(level.lower(), f"{name}\n\n{elapsed:.2f} ms")
 
     def trace(
-        self, func: Callable[..., Any] | None = None, level: str = "DEBUG"
+        self, func: Optional[Callable[..., Any]] = None, level: str = "DEBUG"
     ) -> Any:
         """Decorator to automatically log entry, exit, and execution time of a function."""
 
@@ -475,7 +475,7 @@ class FastLogger:
         return decorator(func)
 
     def profile(
-        self, func: Callable[..., Any] | None = None, level: str = "INFO"
+        self, func: Optional[Callable[..., Any]] = None, level: str = "INFO"
     ) -> Any:
         """Decorator to profile a function's execution using cProfile."""
 
